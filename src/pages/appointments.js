@@ -79,7 +79,7 @@ const AppointmentsPage = () => {
             marginBottom: '0.5rem',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
           }}>
-            LogopediperFemije
+            Logopedi për Fëmijë
           </h1>
           <p style={{
             fontSize: 'clamp(0.9rem, 3vw, 1rem)',

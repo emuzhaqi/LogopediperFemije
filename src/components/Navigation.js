@@ -25,23 +25,13 @@ const Navigation = () => {
       backgroundColor: '#2c3e50',
       padding: 'clamp(0.75rem, 2vw, 1rem) clamp(1rem, 4vw, 2rem)',
       display: 'flex',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'center',
       zIndex: 1000,
       boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
       flexWrap: 'wrap',
       gap: '1rem'
     }}>
-      <div style={{
-        color: 'white',
-        fontSize: 'clamp(1rem, 3vw, 1.2rem)',
-        fontWeight: 'bold'
-      }}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
-          LogopediperFemije
-        </Link>
-      </div>
-
       <div style={{
         display: 'flex',
         gap: 'clamp(0.5rem, 3vw, 2rem)',

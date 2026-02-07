@@ -18,7 +18,7 @@ export default IndexPage
 
 export const Head = () => (
   <>
-    <title>LogopediperFemije - Speech Therapy for Children</title>
+    <title>Logopedi për Fëmijë - Speech Therapy for Children</title>
     <meta name="description" content="Professional speech therapy services for children" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   </>

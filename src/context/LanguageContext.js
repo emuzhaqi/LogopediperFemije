@@ -13,7 +13,7 @@ export const translations = {
     language: 'Language',
 
     // Common
-    welcome: 'Welcome to LogopediperFemije',
+    welcome: 'Welcome to Logopedi për Fëmijë',
     tagline: 'Professional Speech Therapy for Children',
     aboutTitle: 'About Our Services',
     aboutText: 'We provide specialized speech therapy services for children, helping them develop communication skills in a supportive and engaging environment.',

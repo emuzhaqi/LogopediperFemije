@@ -1,10 +1,8 @@
 import React from 'react'
 import { useLanguage } from '../context/LanguageContext'
 
-const Navigation = ({ currentDesign, setCurrentDesign }) => {
-  const { language, toggleLanguage, t } = useLanguage()
-
-  const designs = ['design1', 'design2', 'design3', 'design4', 'design5']
+const Navigation = () => {
+  const { language, toggleLanguage } = useLanguage()
 
   return (
     <nav style={{
@@ -21,35 +19,18 @@ const Navigation = ({ currentDesign, setCurrentDesign }) => {
       boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
     }}>
       <div style={{
-        display: 'flex',
-        gap: '1rem',
-        alignItems: 'center'
+        color: 'white',
+        fontSize: '1.2rem',
+        fontWeight: 'bold'
       }}>
-        {designs.map((design, index) => (
-          <button
-            key={design}
-            onClick={() => setCurrentDesign(index + 1)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: currentDesign === index + 1 ? '#3498db' : 'transparent',
-              color: 'white',
-              border: '1px solid #3498db',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              transition: 'all 0.3s'
-            }}
-          >
-            {t(design)}
-          </button>
-        ))}
+        LogopediperFemije
       </div>
 
       <button
         onClick={toggleLanguage}
         style={{
           padding: '0.5rem 1.5rem',
-          backgroundColor: '#e74c3c',
+          backgroundColor: '#3498db',
           color: 'white',
           border: 'none',
           borderRadius: '4px',

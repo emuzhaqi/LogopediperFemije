@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useLanguage } from '../../context/LanguageContext'
+import { supabase } from '../../utils/supabase'
 
 const CalendlyStyle = ({ translations }) => {
   const { language } = useLanguage()
@@ -50,6 +51,9 @@ const CalendlyStyle = ({ translations }) => {
     details: ''
   })
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [bookedTimes, setBookedTimes] = useState([])
+  const [loadingTimes, setLoadingTimes] = useState(false)
 
   const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 
@@ -99,22 +103,47 @@ const CalendlyStyle = ({ translations }) => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
     setSelectedDate(null)
     setSelectedTime(null)
+    setBookedTimes([])
   }
 
   const handleNextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
     setSelectedDate(null)
     setSelectedTime(null)
+    setBookedTimes([])
+  }
+
+  const fetchBookedTimes = async (date) => {
+    setLoadingTimes(true)
+    try {
+      const dateStr = date.toISOString().split('T')[0]
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('appointment_time')
+        .eq('appointment_date', dateStr)
+        .in('status', ['pending', 'confirmed'])
+
+      if (error) throw error
+
+      const times = data.map(appointment => appointment.appointment_time)
+      setBookedTimes(times)
+    } catch (error) {
+      console.error('Error fetching booked times:', error)
+      setBookedTimes([])
+    } finally {
+      setLoadingTimes(false)
+    }
   }
 
   const handleDateClick = (date) => {
     if (isDateAvailable(date)) {
       setSelectedDate(date)
       setSelectedTime(null)
+      fetchBookedTimes(date)
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const isConsultation = formData.type.includes('consultation')
     if (isConsultation && !formData.details.trim()) {
@@ -122,21 +151,47 @@ const CalendlyStyle = ({ translations }) => {
       return
     }
 
-    console.log('Appointment booked:', {
-      date: selectedDate.toISOString().split('T')[0],
-      time: selectedTime,
-      ...formData
-    })
+    setIsSubmitting(true)
+    setMessage({ type: '', text: '' })
 
-    setMessage({ type: 'success', text: t('successMessage') })
+    try {
+      const appointmentData = {
+        appointment_type: formData.type,
+        appointment_date: selectedDate.toISOString().split('T')[0],
+        appointment_time: selectedTime,
+        client_name: formData.name,
+        client_email: formData.email,
+        client_phone: formData.phone,
+        details: formData.details || null,
+        status: 'pending'
+      }
 
-    setTimeout(() => {
-      setStep(1)
-      setSelectedDate(null)
-      setSelectedTime(null)
-      setFormData({ type: 'online-consultation', name: '', email: '', phone: '', details: '' })
-      setMessage({ type: '', text: '' })
-    }, 3000)
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert([appointmentData])
+
+      if (error) throw error
+
+      setMessage({ type: 'success', text: t('successMessage') })
+
+      setTimeout(() => {
+        setStep(1)
+        setSelectedDate(null)
+        setSelectedTime(null)
+        setFormData({ type: 'online-consultation', name: '', email: '', phone: '', details: '' })
+        setMessage({ type: '', text: '' })
+        setIsSubmitting(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Error booking appointment:', error)
+      setMessage({
+        type: 'error',
+        text: language === 'en'
+          ? 'Failed to book appointment. Please try again.'
+          : 'Dështoi rezervimi. Ju lutemi provoni përsëri.'
+      })
+      setIsSubmitting(false)
+    }
   }
 
   const monthNames = language === 'en'
@@ -355,22 +410,26 @@ const CalendlyStyle = ({ translations }) => {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               style={{
                 width: '100%',
                 padding: '0.875rem',
                 fontSize: '1rem',
                 fontWeight: '600',
-                backgroundColor: '#006bff',
+                backgroundColor: isSubmitting ? '#ccc' : '#006bff',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
-                cursor: 'pointer',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#0056d2'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#006bff'}
+              onMouseEnter={(e) => { if (!isSubmitting) e.target.style.backgroundColor = '#0056d2' }}
+              onMouseLeave={(e) => { if (!isSubmitting) e.target.style.backgroundColor = '#006bff' }}
             >
-              {language === 'en' ? 'Schedule Event' : 'Rezervo Takimin'}
+              {isSubmitting
+                ? (language === 'en' ? 'Booking...' : 'Duke rezervuar...')
+                : (language === 'en' ? 'Schedule Event' : 'Rezervo Takimin')
+              }
             </button>
           </form>
         </div>
@@ -580,6 +639,17 @@ const CalendlyStyle = ({ translations }) => {
                 {formatDate(selectedDate)}
               </h3>
 
+              {loadingTimes && (
+                <div style={{
+                  padding: '1rem',
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  fontSize: '0.9rem'
+                }}>
+                  {language === 'en' ? 'Checking availability...' : 'Duke kontrolluar disponueshmërinë...'}
+                </div>
+              )}
+
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -589,36 +659,48 @@ const CalendlyStyle = ({ translations }) => {
               }}>
                 {timeSlots.map(time => {
                   const isSelected = selectedTime === time
+                  const isBooked = bookedTimes.includes(time)
                   return (
                     <button
                       key={time}
-                      onClick={() => setSelectedTime(time)}
+                      onClick={() => !isBooked && setSelectedTime(time)}
+                      disabled={isBooked}
                       style={{
                         padding: '0.875rem',
-                        border: isSelected ? '2px solid #006bff' : '1px solid #d1d5db',
+                        border: isBooked
+                          ? '1px solid #e5e7eb'
+                          : isSelected ? '2px solid #006bff' : '1px solid #d1d5db',
                         borderRadius: '6px',
-                        backgroundColor: isSelected ? '#006bff' : 'white',
-                        color: isSelected ? 'white' : '#1a1a1a',
-                        cursor: 'pointer',
+                        backgroundColor: isBooked
+                          ? '#f9fafb'
+                          : isSelected ? '#006bff' : 'white',
+                        color: isBooked
+                          ? '#9ca3af'
+                          : isSelected ? 'white' : '#1a1a1a',
+                        cursor: isBooked ? 'not-allowed' : 'pointer',
                         fontSize: '0.95rem',
                         fontWeight: '500',
                         textAlign: 'center',
-                        transition: 'all 0.15s'
+                        transition: 'all 0.15s',
+                        opacity: isBooked ? 0.6 : 1
                       }}
                       onMouseEnter={(e) => {
-                        if (!isSelected) {
+                        if (!isSelected && !isBooked) {
                           e.target.style.borderColor = '#006bff'
                           e.target.style.color = '#006bff'
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!isSelected) {
+                        if (!isSelected && !isBooked) {
                           e.target.style.borderColor = '#d1d5db'
                           e.target.style.color = '#1a1a1a'
                         }
                       }}
                     >
-                      {time}
+                      {isBooked
+                        ? (language === 'en' ? `${time} - Booked` : `${time} - Rezervuar`)
+                        : time
+                      }
                     </button>
                   )
                 })}

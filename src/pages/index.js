@@ -1,17 +1,16 @@
-import * as React from "react"
+import React from 'react'
+import { LanguageProvider } from '../context/LanguageContext'
+import Navigation from '../components/Navigation'
+import Design1 from '../components/Design1'
 
 const IndexPage = () => {
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      margin: 0,
-      padding: 0
-    }}>
-      <h1>Welcome</h1>
-    </div>
+    <LanguageProvider>
+      <div style={{ paddingTop: '60px' }}>
+        <Navigation />
+        <Design1 />
+      </div>
+    </LanguageProvider>
   )
 }
 
@@ -19,7 +18,7 @@ export default IndexPage
 
 export const Head = () => (
   <>
-    <title>LogopediperFemije</title>
-    <meta name="description" content="Welcome to LogopediperFemije" />
+    <title>LogopediperFemije - Speech Therapy for Children</title>
+    <meta name="description" content="Professional speech therapy services for children" />
   </>
 )

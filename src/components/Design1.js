@@ -1,9 +1,9 @@
 import React from 'react'
+import { Link } from 'gatsby'
 import { useLanguage } from '../context/LanguageContext'
-import image1 from '../images/sample_1920×1280.jpg'
-import image2 from '../images/sample_1280×853.jpg'
-import image3 from '../images/sample_640×426.jpg'
-import image4 from '../images/sample_5184×3456.jpg'
+import image1 from '../images/image1.jpg'
+import image2 from '../images/image2.jpg'
+import image3 from '../images/image3.jpg'
 
 const Design1 = () => {
   const { t } = useLanguage()
@@ -12,8 +12,8 @@ const Design1 = () => {
     <div style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Hero Section */}
       <section style={{
-        height: '100vh',
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${image1})`,
+        minHeight: '100vh',
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${image2})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
@@ -22,15 +22,24 @@ const Design1 = () => {
         alignItems: 'center',
         color: 'white',
         textAlign: 'center',
-        padding: '0 2rem'
+        padding: '2rem 1rem'
       }}>
-        <h1 style={{ fontSize: '4rem', marginBottom: '1rem', fontWeight: 'bold' }}>
+        <h1 style={{
+          fontSize: 'clamp(2rem, 8vw, 4rem)',
+          marginBottom: '1rem',
+          fontWeight: 'bold',
+          maxWidth: '90%'
+        }}>
           {t('welcome')}
         </h1>
-        <p style={{ fontSize: '1.5rem', marginBottom: '2rem' }}>
+        <p style={{
+          fontSize: 'clamp(1rem, 4vw, 1.5rem)',
+          marginBottom: '2rem',
+          maxWidth: '90%'
+        }}>
           {t('tagline')}
         </p>
-        <button style={{
+        <Link to="/appointments" style={{
           padding: '1rem 2.5rem',
           fontSize: '1.2rem',
           backgroundColor: '#3498db',
@@ -38,45 +47,63 @@ const Design1 = () => {
           border: 'none',
           borderRadius: '50px',
           cursor: 'pointer',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          textDecoration: 'none',
+          display: 'inline-block'
         }}>
           {t('bookNow')}
-        </button>
+        </Link>
       </section>
 
       {/* About Section */}
       <section style={{
-        padding: '5rem 2rem',
+        padding: 'clamp(2rem, 8vw, 5rem) 1.5rem',
         backgroundColor: '#ecf0f1',
         textAlign: 'center'
       }}>
-        <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', color: '#2c3e50' }}>
+        <h2 style={{
+          fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
+          marginBottom: '1.5rem',
+          color: '#2c3e50'
+        }}>
           {t('aboutTitle')}
         </h2>
-        <p style={{ fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.8', color: '#34495e' }}>
+        <p style={{
+          fontSize: 'clamp(1rem, 3vw, 1.2rem)',
+          maxWidth: '800px',
+          margin: '0 auto',
+          lineHeight: '1.8',
+          color: '#34495e',
+          padding: '0 1rem'
+        }}>
           {t('aboutText')}
         </p>
       </section>
 
       {/* Services Section */}
       <section style={{
-        padding: '5rem 2rem',
+        padding: 'clamp(2rem, 8vw, 5rem) 1.5rem',
         backgroundColor: 'white'
       }}>
-        <h2 style={{ fontSize: '2.5rem', marginBottom: '3rem', textAlign: 'center', color: '#2c3e50' }}>
+        <h2 style={{
+          fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
+          marginBottom: 'clamp(2rem, 5vw, 3rem)',
+          textAlign: 'center',
+          color: '#2c3e50'
+        }}>
           {t('servicesTitle')}
         </h2>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+          gap: 'clamp(1rem, 3vw, 2rem)',
           maxWidth: '1200px',
-          margin: '0 auto'
+          margin: '0 auto',
+          padding: '0 1rem'
         }}>
           {[
             { img: image2, title: t('service1'), desc: t('service1Desc') },
             { img: image3, title: t('service2'), desc: t('service2Desc') },
-            { img: image4, title: t('service3'), desc: t('service3Desc') },
             { img: image1, title: t('service4'), desc: t('service4Desc') }
           ].map((service, index) => (
             <div key={index} style={{
@@ -106,29 +133,75 @@ const Design1 = () => {
 
       {/* Contact Section */}
       <section style={{
-        padding: '5rem 2rem',
+        padding: 'clamp(2rem, 8vw, 5rem) 1.5rem',
         backgroundColor: '#3498db',
-        color: 'white',
-        textAlign: 'center'
+        color: 'white'
       }}>
-        <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
-          {t('contactTitle')}
-        </h2>
-        <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>
-          {t('contactText')}
-        </p>
-        <button style={{
-          padding: '1rem 2.5rem',
-          fontSize: '1.2rem',
-          backgroundColor: 'white',
-          color: '#3498db',
-          border: 'none',
-          borderRadius: '50px',
-          cursor: 'pointer',
-          fontWeight: 'bold'
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          paddingLeft: 'clamp(1rem, 4vw, 2rem)'
         }}>
-          {t('getStarted')}
-        </button>
+          <h2 style={{
+            fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
+            marginBottom: '2.5rem'
+          }}>
+            {t('contactTitle')}
+          </h2>
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            fontSize: 'clamp(1rem, 3vw, 1.15rem)'
+          }}>
+          {/* Phone */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+            </svg>
+            <a href="tel:+355693664953" style={{
+              color: 'white',
+              textDecoration: 'none',
+              transition: 'opacity 0.3s'
+            }}>
+              +355 69 366 4953
+            </a>
+          </div>
+
+          {/* Email */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <a href="mailto:logopediperfemije@gmail.com" style={{
+              color: 'white',
+              textDecoration: 'none',
+              transition: 'opacity 0.3s',
+              wordBreak: 'break-word'
+            }}>
+              logopediperfemije@gmail.com
+            </a>
+          </div>
+
+          {/* Instagram */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+            <a href="https://instagram.com/logopedi.per.femije" target="_blank" rel="noopener noreferrer" style={{
+              color: 'white',
+              textDecoration: 'none',
+              transition: 'opacity 0.3s'
+            }}>
+              @logopedi.per.femije
+            </a>
+          </div>
+        </div>
+      </div>
       </section>
     </div>
   )

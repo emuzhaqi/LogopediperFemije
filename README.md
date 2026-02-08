@@ -1,120 +1,367 @@
-# LogopediperFemije
+# LogopediperFemije - Speech Therapy Appointment Booking System
 
-A Gatsby-based React application configured for automated deployment to GitHub Pages.
+A professional appointment booking and management system for speech therapy services, built with Gatsby, React, and Supabase.
 
-## 🚀 Quick Start
+## Features
 
-### Prerequisites
+### Client-Facing Features
+- **Appointment Booking**: Intuitive calendar interface for booking speech therapy appointments
+- **Multiple Service Types**: Support for in-person consultations, online consultations, and mentoring meetings
+- **Real-time Availability**: Live updates showing available time slots
+- **Bilingual Support**: English and Albanian language options
+- **Responsive Design**: Mobile-first design that works on all devices
 
-- Node.js 18.x or higher (20.x LTS recommended)
-- npm or yarn
+### Admin Features
+- **Password-Protected Admin Panel**: Secure access to appointment management
+- **Appointments Dashboard**: View and filter all appointments by status and date range
+- **Inline Editing**: Edit appointment date and time directly from the table
+- **One-Click Confirmation**: Send confirmation emails with payment links
+- **Real-time Updates**: Appointments update automatically without page refresh
+- **Email Notifications**: Automated emails to clients with payment instructions
+
+## Tech Stack
+
+- **Frontend**: Gatsby (React), React Context API
+- **Backend**: Supabase (PostgreSQL, Edge Functions, Real-time)
+- **Email**: Resend API
+- **Authentication**: JWT-based admin authentication
+- **Hosting**: GitHub Pages (or any static site host)
+
+## Project Structure
+
+```
+├── src/
+│   ├── components/
+│   │   ├── admin/                    # Admin panel components
+│   │   │   ├── AdminDashboard.js     # Main admin interface
+│   │   │   ├── AppointmentsTable.js  # Appointments list with filters
+│   │   │   ├── AppointmentRow.js     # Individual appointment row with editing
+│   │   │   ├── ConfirmationModal.js  # Email confirmation dialog
+│   │   │   ├── LoginForm.js          # Admin login form
+│   │   │   ├── NotificationToast.js  # Success/error notifications
+│   │   │   └── ProtectedRoute.js     # Auth wrapper component
+│   │   ├── appointments/             # Public booking components
+│   │   │   └── CalendlyStyle.js      # Booking calendar interface
+│   │   └── Navigation.js             # Site navigation
+│   ├── context/
+│   │   ├── AdminAuthContext.js       # Admin authentication state
+│   │   └── LanguageContext.js        # i18n language state
+│   ├── pages/
+│   │   ├── admin.js                  # Admin panel page (/admin)
+│   │   ├── appointments.js           # Booking page (/appointments)
+│   │   └── index.js                  # Homepage
+│   └── utils/
+│       ├── adminEmailService.js      # Email API wrapper
+│       └── supabase.js               # Supabase client configuration
+├── supabase/
+│   ├── functions/
+│   │   ├── admin-auth/               # Password validation edge function
+│   │   │   ├── index.ts
+│   │   │   └── deno.json
+│   │   └── send-appointment-email/   # Email sending edge function
+│   │       ├── index.ts
+│   │       └── deno.json
+│   ├── migrations/
+│   │   └── 20260208_enable_rls.sql   # Row Level Security policies
+│   └── config.toml                   # Supabase configuration
+└── README.md
+```
+
+## Database Schema
+
+### `appointments` Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key (auto-generated) |
+| appointment_date | date | Appointment date (YYYY-MM-DD) |
+| appointment_time | text | Time slot (HH:MM format) |
+| appointment_type | text | Type: 'in-person-consultation', 'online-consultation', 'mentoring-meeting' |
+| client_name | text | Client's full name |
+| client_email | text | Client's email address |
+| client_phone | text | Client's phone number |
+| details | text | Additional notes/concerns (optional) |
+| status | text | 'pending' or 'confirmed' |
+| created_at | timestamp | Auto-generated creation timestamp |
+
+### Row Level Security (RLS) Policies
+
+- **Public Inserts**: Anonymous users can book appointments
+- **Public Reads**: Anyone can view appointments (for availability checking)
+- **Authenticated Updates**: Only authenticated admins can update appointments
+- **No Deletes**: Appointments cannot be deleted (data preservation)
+
+## Environment Variables
+
+### Required Environment Variables (Supabase Dashboard)
+
+Set these in: **Supabase Dashboard → Project Settings → Edge Functions → Environment Variables**
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ADMIN_PASSWORD` | Admin panel password (min 12 characters recommended) | `MySecurePassword123!` |
+| `RESEND_API_KEY` | Resend API key for sending emails | `re_xxxxxxxxxxxxx` |
+| `SUPABASE_JWT_SECRET` | JWT signing secret (found in Supabase project settings) | Auto-generated by Supabase |
+
+### Frontend Environment Variables
+
+Create `.env.production` or configure in your hosting platform:
+
+```bash
+# Supabase Configuration (already in src/utils/supabase.js)
+GATSBY_SUPABASE_URL=https://your-project.supabase.co
+GATSBY_SUPABASE_ANON_KEY=your-anon-key
+```
+
+## Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd LogopediperFemije
+npm install
+```
+
+### 2. Set Up Supabase
+
+#### Create the Database Table
+
+In Supabase SQL Editor, run:
+
+```sql
+CREATE TABLE appointments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  appointment_date DATE NOT NULL,
+  appointment_time TEXT NOT NULL,
+  appointment_type TEXT NOT NULL,
+  client_name TEXT NOT NULL,
+  client_email TEXT NOT NULL,
+  client_phone TEXT NOT NULL,
+  details TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+#### Enable Row Level Security
+
+```bash
+# Apply RLS policies from the migrations file
+npx supabase db push --local
+# Or run the SQL manually in Supabase SQL Editor
+cat supabase/migrations/20260208_enable_rls.sql | pbcopy
+```
+
+### 3. Deploy Edge Functions
+
+```bash
+# Install Supabase CLI if not already installed
+npm install -g supabase
+
+# Login to Supabase
+npx supabase login
+
+# Link your project
+npx supabase link --project-ref your-project-ref
+
+# Deploy functions
+npx supabase functions deploy admin-auth
+npx supabase functions deploy send-appointment-email
+```
+
+### 4. Configure Environment Variables
+
+In Supabase Dashboard:
+1. Go to **Project Settings → Edge Functions**
+2. Add environment variables:
+   - `ADMIN_PASSWORD`: Your secure admin password
+   - `RESEND_API_KEY`: Get from [resend.com](https://resend.com)
+   - `SUPABASE_JWT_SECRET`: Found in Project Settings → API → JWT Settings
+
+### 5. Set Up Email Sender
+
+1. Sign up at [Resend](https://resend.com)
+2. Verify your sending domain (or use `onboarding@resend.dev` for testing)
+3. Update email sender in `/supabase/functions/send-appointment-email/index.ts`:
+   ```typescript
+   from: 'noreply@yourdomain.com'  // Update this line
+   ```
+
+### 6. Build and Deploy
+
+```bash
+# Development
+npm run develop
+
+# Production build
+npm run build
+
+# Deploy to GitHub Pages
+npm run deploy
+```
+
+## Usage Guide
+
+### For Clients (Public)
+
+1. Visit `/appointments` page
+2. Select a date from the calendar (weekdays only)
+3. Choose an available time slot
+4. Select appointment type
+5. Fill in contact details and concerns
+6. Submit the booking
+7. Wait for confirmation email with payment link
+
+### For Admin
+
+#### Accessing the Admin Panel
+
+1. Navigate to `/admin` (not visible in navigation)
+2. Enter admin password
+3. Session remains active until browser is closed
+
+#### Managing Appointments
+
+**View Appointments:**
+- Use filters to view by status (All/Pending/Confirmed)
+- Filter by date range for specific periods
+- Appointments update in real-time
+
+**Edit Appointment:**
+1. Click "Edit" button on any appointment
+2. Modify date and/or time
+3. Click "Save" to update
+4. Validation prevents past dates and weekends
+
+**Confirm Appointment:**
+1. Click "Confirm" button on pending appointment
+2. Review appointment details in modal
+3. Enter/edit payment link (e.g., `https://paypal.me/username/35EUR`)
+4. Click "Send Confirmation Email"
+5. Client receives email with payment instructions
+6. Status automatically updates to "Confirmed"
+
+**Logout:**
+- Click "Logout" button in top-right corner
+- Session token is cleared immediately
+
+## Email Templates
+
+### New Appointment Email (to Admin)
+- **Recipient**: logopediperfemije@gmail.com
+- **Trigger**: When client books appointment
+- **Contains**: Date, time, type, client details
+
+### Confirmation Email (to Client)
+- **Recipient**: Client's email address
+- **Trigger**: When admin confirms appointment
+- **Contains**: Appointment details, payment link button
+
+## Security Features
+
+- **Password-Protected Admin Access**: JWT-based authentication
+- **Session Management**: Tokens stored in sessionStorage (cleared on browser close)
+- **Row Level Security**: Database-level access control
+- **CORS Protection**: Edge functions validate origins
+- **No Admin Link**: `/admin` route not visible in navigation
+- **Token Expiry**: 4-hour session timeout
+
+## Development
 
 ### Local Development
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+# Start Gatsby development server
+npm run develop
 
-2. **Start development server:**
-   ```bash
-   npm run develop
-   ```
+# Start Supabase locally (optional)
+npx supabase start
 
-   The site will be available at `http://localhost:8000`
-
-3. **Build for production:**
-   ```bash
-   npm run build
-   ```
-
-4. **Serve production build locally:**
-   ```bash
-   npm run serve
-   ```
-
-   The site will be available at `http://localhost:9000/LogopediperFemije`
-
-## 📁 Project Structure
-
-```
-LogopediperFemije/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          # GitHub Actions deployment workflow
-├── src/
-│   ├── components/
-│   │   └── Layout.js           # Reusable layout component
-│   ├── pages/
-│   │   └── index.js            # Homepage
-│   ├── images/                 # Image assets
-│   └── styles/
-│       └── global.css          # Global styles
-├── gatsby-config.js            # Gatsby configuration
-├── gatsby-browser.js           # Browser APIs
-├── gatsby-node.js              # Node APIs
-└── package.json                # Project dependencies
+# Deploy functions locally
+npx supabase functions serve
 ```
 
-## 🔧 Configuration
+### Testing
 
-### Path Prefix
+**Test Appointment Booking:**
+1. Go to `/appointments`
+2. Book a test appointment
+3. Check Supabase dashboard for new record
 
-This project is configured to deploy to GitHub Pages at `https://emuzhaqi.github.io/LogopediperFemije/`. The path prefix `/LogopediperFemije` is set in `gatsby-config.js`.
+**Test Admin Panel:**
+1. Go to `/admin`
+2. Login with admin password
+3. Verify appointment appears in dashboard
+4. Test editing and confirming
 
-### GitHub Pages Setup
+**Test Email Flow:**
+1. Confirm an appointment
+2. Check email delivery in Resend dashboard
+3. Verify email content and links
 
-1. Go to your repository settings
-2. Navigate to "Pages" section
-3. Set source to "GitHub Actions"
-4. The site will be automatically deployed on every push to the `main` branch
+## Troubleshooting
 
-## 🚢 Deployment
+### Admin Login Not Working
+- Verify `ADMIN_PASSWORD` is set in Supabase Edge Functions environment
+- Check browser console for errors
+- Ensure `admin-auth` function is deployed
 
-The project uses GitHub Actions for automated deployment:
+### Emails Not Sending
+- Verify `RESEND_API_KEY` is set correctly
+- Check Resend dashboard for delivery status
+- Verify sender email is verified in Resend
 
-- **Trigger:** Push to `main` branch or manual workflow dispatch
-- **Build Process:**
-  1. Checkout code
-  2. Setup Node.js 20.x
-  3. Install dependencies with `npm ci`
-  4. Build Gatsby site with `gatsby build --prefix-paths`
-  5. Upload artifact
-  6. Deploy to GitHub Pages
-- **Live URL:** https://emuzhaqi.github.io/LogopediperFemije/
+### Real-time Updates Not Working
+- Check Supabase Realtime is enabled in project settings
+- Verify RLS policies are applied
+- Check browser console for WebSocket errors
 
-## 📝 Available Scripts
+### Appointments Not Saving
+- Verify database table exists and has correct schema
+- Check RLS policies allow anonymous inserts
+- Review Supabase logs for errors
 
-- `npm run develop` - Start development server
-- `npm start` - Alias for develop
-- `npm run build` - Build for production (includes path prefix)
-- `npm run serve` - Serve production build locally
-- `npm run clean` - Clean Gatsby cache and public folder
+## Deployment Checklist
 
-## 🛠️ Technologies
+- [ ] Deploy edge functions (`admin-auth`, `send-appointment-email`)
+- [ ] Set environment variables in Supabase Dashboard
+- [ ] Apply RLS policies to `appointments` table
+- [ ] Configure verified email sender in Resend
+- [ ] Update email sender address in edge function
+- [ ] Set strong admin password (min 12 characters)
+- [ ] Test appointment booking flow
+- [ ] Test admin login and confirmation flow
+- [ ] Verify email delivery
+- [ ] Build and deploy frontend (`gatsby build`)
 
-- **Gatsby 5.x** - Static site generator
-- **React 18.x** - UI library
-- **GitHub Actions** - CI/CD pipeline
-- **GitHub Pages** - Hosting
+## Future Enhancements
 
-## 📦 Plugins
+- Appointment cancellation/rescheduling
+- Email template customization
+- SMS notifications
+- Calendar view for admin
+- Analytics dashboard
+- Multi-admin support with roles
+- Automated payment integration
+- Client portal for viewing appointments
 
-- `gatsby-plugin-image` - Optimized image handling
-- `gatsby-plugin-manifest` - PWA manifest configuration
-- `gatsby-plugin-sharp` - Image processing
-- `gatsby-source-filesystem` - File system source plugin
-- `gatsby-transformer-sharp` - Image transformer
+## Support
 
-## 🤝 Contributing
+For issues or questions:
+- Check existing documentation
+- Review Supabase logs
+- Check browser console for errors
+- Contact: logopediperfemije@gmail.com
 
-1. Create a new branch from `main`
-2. Make your changes
-3. Test locally with `npm run develop`
-4. Build and verify with `npm run build && npm run serve`
-5. Push to your branch
-6. Create a pull request to `main`
+## License
 
-## 📄 License
+[Add your license here]
 
-MIT
+## Credits
+
+Built with:
+- [Gatsby](https://www.gatsbyjs.com/)
+- [Supabase](https://supabase.com/)
+- [Resend](https://resend.com/)
+- [React](https://reactjs.org/)

@@ -116,7 +116,12 @@ const CalendlyStyle = ({ translations }) => {
   const fetchBookedTimes = async (date) => {
     setLoadingTimes(true)
     try {
-      const dateStr = date.toISOString().split('T')[0]
+      // Format date without timezone conversion
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${day}`
+
       const { data, error } = await supabase
         .from('appointments')
         .select('appointment_time')
@@ -155,9 +160,15 @@ const CalendlyStyle = ({ translations }) => {
     setMessage({ type: '', text: '' })
 
     try {
+      // Format date without timezone conversion
+      const year = selectedDate.getFullYear()
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+      const day = String(selectedDate.getDate()).padStart(2, '0')
+      const dateStr = `${year}-${month}-${day}`
+
       const appointmentData = {
         appointment_type: formData.type,
-        appointment_date: selectedDate.toISOString().split('T')[0],
+        appointment_date: dateStr,
         appointment_time: selectedTime,
         client_name: formData.name,
         client_email: formData.email,
@@ -166,13 +177,18 @@ const CalendlyStyle = ({ translations }) => {
         status: 'pending'
       }
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('appointments')
         .insert([appointmentData])
 
       if (error) throw error
 
       setMessage({ type: 'success', text: t('successMessage') })
+
+      // Refresh booked times to show the newly booked slot as unavailable
+      if (selectedDate) {
+        await fetchBookedTimes(selectedDate)
+      }
 
       setTimeout(() => {
         setStep(1)

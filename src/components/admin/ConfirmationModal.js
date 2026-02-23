@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { sendConfirmationEmail } from '../../utils/adminEmailService'
+import { generateAppointmentPaymentLink } from '../../utils/paypalService'
 
 const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
-  const [paymentLink, setPaymentLink] = useState('https://paypal.me/')
+  const [amount, setAmount] = useState(35)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)
 
@@ -30,30 +31,20 @@ const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
     }
   }
 
-  const validatePaymentLink = (url) => {
-    try {
-      new URL(url)
-      return true
-    } catch {
-      return false
-    }
-  }
-
   const handleConfirm = async () => {
     setError(null)
-
-    // Validate payment link
-    if (!validatePaymentLink(paymentLink)) {
-      setError('Please enter a valid payment link')
-      return
-    }
-
     setSending(true)
 
     try {
-      // Send confirmation email
-      const emailResult = await sendConfirmationEmail(appointment, paymentLink)
+      // Generate PayPal payment link and save to appointment
+      const { paymentLink } = await generateAppointmentPaymentLink({
+        appointmentId: appointment.id,
+        amount,
+        currency: 'EUR',
+      })
 
+      // Send confirmation email with the payment link
+      const emailResult = await sendConfirmationEmail(appointment, paymentLink)
       if (!emailResult.success) {
         throw new Error(emailResult.error || 'Failed to send email')
       }
@@ -66,12 +57,11 @@ const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
 
       if (updateError) throw updateError
 
-      // Success
       if (onSuccess) onSuccess()
       onClose()
     } catch (err) {
       console.error('Error confirming appointment:', err)
-      setError(err.message || 'Failed to send confirmation email')
+      setError(err.message || 'Failed to confirm appointment')
     } finally {
       setSending(false)
     }
@@ -160,10 +150,10 @@ const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
           </div>
         </div>
 
-        {/* Payment Link Input */}
+        {/* Amount Input */}
         <div style={{ marginBottom: 'clamp(1rem, 3vw, 1.5rem)' }}>
           <label
-            htmlFor="payment-link"
+            htmlFor="payment-amount"
             style={{
               display: 'block',
               fontSize: 'clamp(0.875rem, 2vw, 1rem)',
@@ -172,27 +162,33 @@ const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
               marginBottom: '0.5rem'
             }}
           >
-            Payment Link
+            Amount
           </label>
-          <input
-            type="text"
-            id="payment-link"
-            value={paymentLink}
-            onChange={(e) => setPaymentLink(e.target.value)}
-            disabled={sending}
-            placeholder="https://paypal.me/username/35EUR"
-            style={{
-              width: '100%',
-              padding: 'clamp(0.625rem, 2vw, 0.75rem)',
-              fontSize: 'clamp(0.875rem, 2vw, 1rem)',
-              border: '1px solid #d1d5db',
-              borderRadius: '4px',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-            onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <input
+              type="number"
+              id="payment-amount"
+              value={amount}
+              onChange={(e) => setAmount(Number(e.target.value))}
+              disabled={sending}
+              min="1"
+              step="1"
+              style={{
+                width: '120px',
+                padding: 'clamp(0.625rem, 2vw, 0.75rem)',
+                fontSize: 'clamp(0.875rem, 2vw, 1rem)',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                outline: 'none',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
+            <span style={{ fontSize: 'clamp(0.875rem, 2vw, 1rem)', color: '#374151', fontWeight: '500' }}>
+              EUR
+            </span>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -260,7 +256,7 @@ const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
               if (!sending) e.target.style.backgroundColor = '#10b981'
             }}
           >
-            {sending ? 'Sending Email...' : 'Send Confirmation Email'}
+            {sending ? 'Generating link & sending email…' : 'Confirm & Send Email'}
           </button>
         </div>
       </div>

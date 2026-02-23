@@ -399,3 +399,15 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/admin-auth/deno.json"
 entrypoint = "./functions/admin-auth/index.ts"
+
+[functions.create-paypal-payment]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-paypal-payment/deno.json"
+entrypoint = "./functions/create-paypal-payment/index.ts"
+
+[functions.paypal-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paypal-webhook/deno.json"
+entrypoint = "./functions/paypal-webhook/index.ts"

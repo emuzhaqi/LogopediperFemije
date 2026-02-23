@@ -229,6 +229,15 @@ const AppointmentsTable = ({ statusFilter, dateRange }) => {
                 color: '#374151',
                 whiteSpace: 'nowrap'
               }}>
+                Payment
+              </th>
+              <th style={{
+                padding: 'clamp(0.75rem, 2vw, 1rem)',
+                textAlign: 'left',
+                fontWeight: '600',
+                color: '#374151',
+                whiteSpace: 'nowrap'
+              }}>
                 Actions
               </th>
             </tr>

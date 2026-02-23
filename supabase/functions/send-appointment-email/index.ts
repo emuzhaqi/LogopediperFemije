@@ -1,7 +1,17 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "@supabase/functions-js/edge-runtime.d.ts"
+import nodemailer from "npm:nodemailer@6"
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const GMAIL_USER = Deno.env.get('GMAIL_USER')!
+const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD')!
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: GMAIL_USER,
+    pass: GMAIL_APP_PASSWORD,
+  },
+})
 
 interface EmailRequest {
   type: 'new_appointment' | 'confirmation'
@@ -134,25 +144,17 @@ Deno.serve(async (req) => {
       `
     }
 
-    // Send email using Resend
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`
-      },
-      body: JSON.stringify({
-        from: 'onboarding@resend.dev',
-        to: emailTo,
-        subject: emailSubject,
-        html: emailHtml
-      })
+    // Send email via Gmail
+    await transporter.sendMail({
+      from: `LogopediperFemije <${GMAIL_USER}>`,
+      to: emailTo,
+      subject: emailSubject,
+      html: emailHtml,
     })
 
-    const data = await res.json()
-    console.log('Email sent:', data)
+    console.log('Email sent to:', emailTo)
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ success: true }), {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'

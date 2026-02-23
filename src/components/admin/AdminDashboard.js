@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import AppointmentsTable from './AppointmentsTable'
+import PaymentLinkGenerator from './PaymentLinkGenerator'
 
 const AdminDashboard = () => {
   const { logout } = useAdminAuth()
@@ -181,6 +182,9 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Standalone Payment Link Generator */}
+      <PaymentLinkGenerator />
 
       {/* Appointments Table */}
       <AppointmentsTable

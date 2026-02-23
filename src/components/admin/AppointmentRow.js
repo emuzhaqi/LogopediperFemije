@@ -8,11 +8,11 @@ const AppointmentRow = ({ appointment, onUpdate, showNotification }) => {
   const [editedTime, setEditedTime] = useState(appointment.appointment_time)
   const [saving, setSaving] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [togglingPayment, setTogglingPayment] = useState(false)
 
   const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 
   const handleSave = async () => {
-    // Validate date
     const selectedDate = new Date(editedDate)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -72,6 +72,25 @@ const AppointmentRow = ({ appointment, onUpdate, showNotification }) => {
     setIsEditing(false)
   }
 
+  const handleTogglePayment = async () => {
+    if (togglingPayment) return
+    setTogglingPayment(true)
+    const newStatus = appointment.payment_status === 'paid' ? 'unpaid' : 'paid'
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ payment_status: newStatus })
+        .eq('id', appointment.id)
+      if (error) throw error
+      if (onUpdate) onUpdate()
+    } catch (err) {
+      console.error('Error toggling payment status:', err)
+      if (showNotification) showNotification('Failed to update payment status', 'error')
+    } finally {
+      setTogglingPayment(false)
+    }
+  }
+
   const formatAppointmentType = (type) => {
     switch (type) {
       case 'in-person-consultation':
@@ -93,6 +112,9 @@ const AppointmentRow = ({ appointment, onUpdate, showNotification }) => {
       year: 'numeric'
     })
   }
+
+  const showPaymentBadge = appointment.status === 'confirmed' && appointment.paypal_order_id
+  const isPaid = appointment.payment_status === 'paid'
 
   return (
     <>
@@ -209,6 +231,37 @@ const AppointmentRow = ({ appointment, onUpdate, showNotification }) => {
           }}>
             {appointment.status === 'confirmed' ? 'Confirmed' : 'Pending'}
           </span>
+        </td>
+
+        {/* Payment */}
+        <td style={{
+          padding: 'clamp(0.75rem, 2vw, 1rem)',
+          whiteSpace: 'nowrap'
+        }}>
+          {showPaymentBadge ? (
+            <button
+              onClick={handleTogglePayment}
+              disabled={togglingPayment}
+              title="Click to toggle payment status"
+              style={{
+                display: 'inline-block',
+                padding: '0.25rem 0.5rem',
+                fontSize: 'clamp(0.625rem, 2vw, 0.75rem)',
+                fontWeight: '500',
+                borderRadius: '9999px',
+                backgroundColor: isPaid ? '#d1fae5' : '#fee2e2',
+                color: isPaid ? '#065f46' : '#991b1b',
+                border: 'none',
+                cursor: togglingPayment ? 'not-allowed' : 'pointer',
+                transition: 'opacity 0.2s',
+                opacity: togglingPayment ? 0.6 : 1,
+              }}
+            >
+              {isPaid ? 'Paid' : 'Unpaid'}
+            </button>
+          ) : (
+            <span style={{ color: '#9ca3af', fontSize: 'clamp(0.625rem, 2vw, 0.75rem)' }}>—</span>
+          )}
         </td>
 
         {/* Actions */}

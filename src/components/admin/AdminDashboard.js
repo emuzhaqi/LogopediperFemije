@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import AppointmentsTable from './AppointmentsTable'
 import PaymentLinkGenerator from './PaymentLinkGenerator'
+import BlockedDates from './BlockedDates'
 
 const AdminDashboard = () => {
   const { logout } = useAdminAuth()
@@ -183,14 +184,24 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Standalone Payment Link Generator */}
-      <PaymentLinkGenerator />
-
       {/* Appointments Table */}
-      <AppointmentsTable
-        statusFilter={statusFilter}
-        dateRange={dateRange}
-      />
+      <div style={{ marginBottom: 'clamp(1rem, 3vw, 2rem)' }}>
+        <AppointmentsTable
+          statusFilter={statusFilter}
+          dateRange={dateRange}
+        />
+      </div>
+
+      {/* Generate Payment Link + Blocked Dates side by side */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: 'clamp(1rem, 3vw, 2rem)',
+        alignItems: 'start'
+      }}>
+        <PaymentLinkGenerator />
+        <BlockedDates />
+      </div>
     </div>
   )
 }

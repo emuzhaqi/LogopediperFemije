@@ -7,7 +7,7 @@ A professional appointment booking and management system for speech therapy serv
 ### Client-Facing Features
 - **Appointment Booking**: Intuitive calendar interface for booking speech therapy appointments
 - **Multiple Service Types**: Support for in-person consultations, online consultations, and mentoring meetings
-- **Real-time Availability**: Live updates showing available time slots
+- **Real-time Availability**: Live updates showing available time slots; blocked dates are hidden automatically
 - **Bilingual Support**: English and Albanian language options
 - **Responsive Design**: Mobile-first design that works on all devices
 
@@ -18,12 +18,15 @@ A professional appointment booking and management system for speech therapy serv
 - **One-Click Confirmation**: Send confirmation emails with payment links
 - **Real-time Updates**: Appointments update automatically without page refresh
 - **Email Notifications**: Automated emails to clients with payment instructions
+- **PayPal Payment Integration**: Generate PayPal payment orders per appointment; webhook marks payments as paid
+- **Blocked Dates Management**: Block specific days from the admin panel so clients cannot book them
 
 ## Tech Stack
 
 - **Frontend**: Gatsby (React), React Context API
 - **Backend**: Supabase (PostgreSQL, Edge Functions, Real-time)
 - **Email**: Resend API
+- **Payments**: PayPal Orders API (via Supabase Edge Functions)
 - **Authentication**: JWT-based admin authentication
 - **Hosting**: GitHub Pages (or any static site host)
 
@@ -32,38 +35,52 @@ A professional appointment booking and management system for speech therapy serv
 ```
 ├── src/
 │   ├── components/
-│   │   ├── admin/                    # Admin panel components
-│   │   │   ├── AdminDashboard.js     # Main admin interface
-│   │   │   ├── AppointmentsTable.js  # Appointments list with filters
-│   │   │   ├── AppointmentRow.js     # Individual appointment row with editing
-│   │   │   ├── ConfirmationModal.js  # Email confirmation dialog
-│   │   │   ├── LoginForm.js          # Admin login form
-│   │   │   ├── NotificationToast.js  # Success/error notifications
-│   │   │   └── ProtectedRoute.js     # Auth wrapper component
-│   │   ├── appointments/             # Public booking components
-│   │   │   └── CalendlyStyle.js      # Booking calendar interface
-│   │   └── Navigation.js             # Site navigation
+│   │   ├── admin/                       # Admin panel components
+│   │   │   ├── AdminDashboard.js        # Main admin interface
+│   │   │   ├── AppointmentsTable.js     # Appointments list with filters
+│   │   │   ├── AppointmentRow.js        # Individual appointment row with editing & payment status
+│   │   │   ├── BlockedDates.js          # Calendar UI for blocking/unblocking dates
+│   │   │   ├── ConfirmationModal.js     # Email confirmation dialog with PayPal link
+│   │   │   ├── LoginForm.js             # Admin login form
+│   │   │   ├── NotificationToast.js     # Success/error notifications
+│   │   │   ├── PaymentLinkGenerator.js  # Standalone PayPal link generator tool
+│   │   │   └── ProtectedRoute.js        # Auth wrapper component
+│   │   ├── appointments/                # Public booking components
+│   │   │   └── CalendlyStyle.js         # Booking calendar interface (respects blocked dates)
+│   │   ├── Design1.js                   # Homepage design component
+│   │   ├── Layout.js                    # Page layout wrapper
+│   │   └── Navigation.js               # Site navigation
 │   ├── context/
-│   │   ├── AdminAuthContext.js       # Admin authentication state
-│   │   └── LanguageContext.js        # i18n language state
+│   │   ├── AdminAuthContext.js          # Admin authentication state
+│   │   └── LanguageContext.js           # i18n language state
 │   ├── pages/
-│   │   ├── admin.js                  # Admin panel page (/admin)
-│   │   ├── appointments.js           # Booking page (/appointments)
-│   │   └── index.js                  # Homepage
+│   │   ├── admin.js                     # Admin panel page (/admin)
+│   │   ├── appointments.js              # Booking page (/appointments)
+│   │   └── index.js                     # Homepage
 │   └── utils/
-│       ├── adminEmailService.js      # Email API wrapper
-│       └── supabase.js               # Supabase client configuration
+│       ├── adminEmailService.js         # Email API wrapper
+│       ├── paypalService.js             # PayPal payment link helpers
+│       └── supabase.js                  # Supabase client configuration
 ├── supabase/
 │   ├── functions/
-│   │   ├── admin-auth/               # Password validation edge function
+│   │   ├── admin-auth/                  # Password validation edge function
 │   │   │   ├── index.ts
 │   │   │   └── deno.json
-│   │   └── send-appointment-email/   # Email sending edge function
+│   │   ├── create-paypal-payment/       # Creates PayPal order and returns approval URL
+│   │   │   ├── index.ts
+│   │   │   └── deno.json
+│   │   ├── paypal-webhook/              # Handles PayPal webhook; marks appointment as paid
+│   │   │   ├── index.ts
+│   │   │   └── deno.json
+│   │   └── send-appointment-email/      # Email sending edge function
 │   │       ├── index.ts
 │   │       └── deno.json
 │   ├── migrations/
-│   │   └── 20260208_enable_rls.sql   # Row Level Security policies
-│   └── config.toml                   # Supabase configuration
+│   │   ├── 20260208_enable_rls.sql      # Row Level Security policies
+│   │   ├── 20260223_add_payment_fields.sql  # Payment columns on appointments table
+│   │   ├── 20260224_add_blocked_dates.sql   # blocked_dates table + nullable appointment_time
+│   │   └── 20260225_fix_rls_policies.sql    # RLS fixes for anon admin writes
+│   └── config.toml                     # Supabase configuration
 └── README.md
 ```
 
@@ -75,21 +92,35 @@ A professional appointment booking and management system for speech therapy serv
 |--------|------|-------------|
 | id | uuid | Primary key (auto-generated) |
 | appointment_date | date | Appointment date (YYYY-MM-DD) |
-| appointment_time | text | Time slot (HH:MM format) |
-| appointment_type | text | Type: 'in-person-consultation', 'online-consultation', 'mentoring-meeting' |
+| appointment_time | text | Time slot (HH:MM format) — nullable; admin may assign after booking |
+| appointment_type | text | Type: `in-person-consultation`, `online-consultation`, `mentoring-meeting` |
 | client_name | text | Client's full name |
 | client_email | text | Client's email address |
 | client_phone | text | Client's phone number |
 | details | text | Additional notes/concerns (optional) |
-| status | text | 'pending' or 'confirmed' |
+| status | text | `pending` or `confirmed` |
+| payment_link | text | PayPal (or manual) payment link sent to client |
+| payment_amount | numeric | Amount charged (default: 35) |
+| payment_status | text | `unpaid` or `paid` |
+| paypal_order_id | text | PayPal order ID for webhook reconciliation |
+| created_at | timestamp | Auto-generated creation timestamp |
+
+### `blocked_dates` Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key (auto-generated) |
+| blocked_date | date | Date that is blocked for bookings (unique) |
 | created_at | timestamp | Auto-generated creation timestamp |
 
 ### Row Level Security (RLS) Policies
 
 - **Public Inserts**: Anonymous users can book appointments
 - **Public Reads**: Anyone can view appointments (for availability checking)
-- **Authenticated Updates**: Only authenticated admins can update appointments
+- **Anon Updates**: Admin (using anon key + JWT) can update appointments
 - **No Deletes**: Appointments cannot be deleted (data preservation)
+- **Blocked Dates — Public Reads**: Anyone can read blocked dates (booking page hides them)
+- **Blocked Dates — Anon Inserts/Deletes**: Admin can add or remove blocked dates
 
 ## Environment Variables
 
@@ -102,13 +133,15 @@ Set these in: **Supabase Dashboard → Project Settings → Edge Functions → E
 | `ADMIN_PASSWORD` | Admin panel password (min 12 characters recommended) | `MySecurePassword123!` |
 | `RESEND_API_KEY` | Resend API key for sending emails | `re_xxxxxxxxxxxxx` |
 | `SUPABASE_JWT_SECRET` | JWT signing secret (found in Supabase project settings) | Auto-generated by Supabase |
+| `PAYPAL_CLIENT_ID` | PayPal REST API client ID | `AaBbCc...` |
+| `PAYPAL_CLIENT_SECRET` | PayPal REST API client secret | `EeFfGg...` |
+| `PAYPAL_MODE` | `sandbox` for testing, `live` for production | `sandbox` |
 
 ### Frontend Environment Variables
 
 Create `.env.production` or configure in your hosting platform:
 
 ```bash
-# Supabase Configuration (already in src/utils/supabase.js)
 GATSBY_SUPABASE_URL=https://your-project.supabase.co
 GATSBY_SUPABASE_ANON_KEY=your-anon-key
 ```
@@ -125,32 +158,45 @@ npm install
 
 ### 2. Set Up Supabase
 
-#### Create the Database Table
+#### Create the Database Tables
 
-In Supabase SQL Editor, run:
+In Supabase SQL Editor, run the migrations in order:
+
+```bash
+# Apply all migrations
+cat supabase/migrations/20260208_enable_rls.sql
+cat supabase/migrations/20260223_add_payment_fields.sql
+cat supabase/migrations/20260224_add_blocked_dates.sql
+cat supabase/migrations/20260225_fix_rls_policies.sql
+```
+
+Or run them manually in the Supabase SQL Editor one by one.
+
+The base `appointments` table schema:
 
 ```sql
 CREATE TABLE appointments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   appointment_date DATE NOT NULL,
-  appointment_time TEXT NOT NULL,
+  appointment_time TEXT,
   appointment_type TEXT NOT NULL,
   client_name TEXT NOT NULL,
   client_email TEXT NOT NULL,
   client_phone TEXT NOT NULL,
   details TEXT,
   status TEXT DEFAULT 'pending',
+  payment_link TEXT,
+  payment_amount NUMERIC DEFAULT 35,
+  payment_status TEXT DEFAULT 'unpaid',
+  paypal_order_id TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-```
 
-#### Enable Row Level Security
-
-```bash
-# Apply RLS policies from the migrations file
-npx supabase db push --local
-# Or run the SQL manually in Supabase SQL Editor
-cat supabase/migrations/20260208_enable_rls.sql | pbcopy
+CREATE TABLE blocked_dates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  blocked_date DATE NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
 ### 3. Deploy Edge Functions
@@ -165,9 +211,11 @@ npx supabase login
 # Link your project
 npx supabase link --project-ref your-project-ref
 
-# Deploy functions
+# Deploy all functions
 npx supabase functions deploy admin-auth
 npx supabase functions deploy send-appointment-email
+npx supabase functions deploy create-paypal-payment
+npx supabase functions deploy paypal-webhook
 ```
 
 ### 4. Configure Environment Variables
@@ -178,6 +226,8 @@ In Supabase Dashboard:
    - `ADMIN_PASSWORD`: Your secure admin password
    - `RESEND_API_KEY`: Get from [resend.com](https://resend.com)
    - `SUPABASE_JWT_SECRET`: Found in Project Settings → API → JWT Settings
+   - `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`: From [developer.paypal.com](https://developer.paypal.com)
+   - `PAYPAL_MODE`: `sandbox` for testing, `live` for production
 
 ### 5. Set Up Email Sender
 
@@ -188,7 +238,16 @@ In Supabase Dashboard:
    from: 'noreply@yourdomain.com'  // Update this line
    ```
 
-### 6. Build and Deploy
+### 6. Configure PayPal Webhook
+
+1. In the PayPal Developer Dashboard, create a webhook pointing to:
+   ```
+   https://<your-supabase-project>.supabase.co/functions/v1/paypal-webhook
+   ```
+2. Subscribe to the `PAYMENT.CAPTURE.COMPLETED` event.
+3. The webhook will automatically mark the appointment `payment_status` as `paid`.
+
+### 7. Build and Deploy
 
 ```bash
 # Development
@@ -206,7 +265,7 @@ npm run deploy
 ### For Clients (Public)
 
 1. Visit `/appointments` page
-2. Select a date from the calendar (weekdays only)
+2. Select a date from the calendar (weekdays only; blocked dates are hidden)
 3. Choose an available time slot
 4. Select appointment type
 5. Fill in contact details and concerns
@@ -235,12 +294,24 @@ npm run deploy
 4. Validation prevents past dates and weekends
 
 **Confirm Appointment:**
-1. Click "Confirm" button on pending appointment
+1. Click "Confirm" button on a pending appointment
 2. Review appointment details in modal
-3. Enter/edit payment link (e.g., `https://paypal.me/username/35EUR`)
+3. Generate a PayPal payment link or enter a manual payment URL
 4. Click "Send Confirmation Email"
 5. Client receives email with payment instructions
 6. Status automatically updates to "Confirmed"
+
+**Generate Standalone Payment Link:**
+- Use the "Payment Link Generator" tool in the admin dashboard
+- Select appointment type and amount
+- Click "Generate" to create a PayPal order link
+- Copy and share the link independently of an appointment
+
+**Block / Unblock Dates:**
+1. Open the "Blocked Dates" section in the admin dashboard
+2. Navigate the calendar and click on weekday dates to toggle them
+3. Click "Save Changes" — blocked dates are stored in the `blocked_dates` table
+4. The booking calendar on `/appointments` will hide these dates automatically
 
 **Logout:**
 - Click "Logout" button in top-right corner
@@ -278,7 +349,7 @@ npm run develop
 # Start Supabase locally (optional)
 npx supabase start
 
-# Deploy functions locally
+# Serve functions locally
 npx supabase functions serve
 ```
 
@@ -293,12 +364,18 @@ npx supabase functions serve
 1. Go to `/admin`
 2. Login with admin password
 3. Verify appointment appears in dashboard
-4. Test editing and confirming
+4. Test editing, confirming, and blocking dates
 
 **Test Email Flow:**
 1. Confirm an appointment
 2. Check email delivery in Resend dashboard
 3. Verify email content and links
+
+**Test PayPal Flow:**
+1. Use sandbox credentials (`PAYPAL_MODE=sandbox`)
+2. Generate a payment link from the admin panel
+3. Complete payment with a PayPal sandbox buyer account
+4. Verify the webhook marks `payment_status` as `paid`
 
 ## Troubleshooting
 
@@ -322,17 +399,29 @@ npx supabase functions serve
 - Check RLS policies allow anonymous inserts
 - Review Supabase logs for errors
 
+### PayPal Payments Not Updating
+- Verify `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_MODE` are set
+- Confirm the webhook URL is registered in the PayPal Developer Dashboard
+- Check the `paypal-webhook` function logs in Supabase
+
+### Blocked Dates Not Appearing on Booking Page
+- Confirm the `blocked_dates` table exists and RLS allows public reads
+- Run the `20260224_add_blocked_dates.sql` and `20260225_fix_rls_policies.sql` migrations
+- Check browser console for Supabase query errors
+
 ## Deployment Checklist
 
-- [ ] Deploy edge functions (`admin-auth`, `send-appointment-email`)
+- [ ] Deploy edge functions (`admin-auth`, `send-appointment-email`, `create-paypal-payment`, `paypal-webhook`)
 - [ ] Set environment variables in Supabase Dashboard
-- [ ] Apply RLS policies to `appointments` table
+- [ ] Apply all RLS migrations to the database
 - [ ] Configure verified email sender in Resend
 - [ ] Update email sender address in edge function
 - [ ] Set strong admin password (min 12 characters)
+- [ ] Configure PayPal credentials and register webhook
 - [ ] Test appointment booking flow
-- [ ] Test admin login and confirmation flow
+- [ ] Test admin login, confirmation, and blocked dates flows
 - [ ] Verify email delivery
+- [ ] Verify PayPal payment capture and webhook
 - [ ] Build and deploy frontend (`gatsby build`)
 
 ## Future Enhancements
@@ -343,7 +432,6 @@ npx supabase functions serve
 - Calendar view for admin
 - Analytics dashboard
 - Multi-admin support with roles
-- Automated payment integration
 - Client portal for viewing appointments
 
 ## Support
@@ -364,4 +452,5 @@ Built with:
 - [Gatsby](https://www.gatsbyjs.com/)
 - [Supabase](https://supabase.com/)
 - [Resend](https://resend.com/)
+- [PayPal REST API](https://developer.paypal.com/)
 - [React](https://reactjs.org/)

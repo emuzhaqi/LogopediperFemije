@@ -7,11 +7,9 @@ const Navigation = () => {
 
   const navLinks = {
     en: {
-      home: 'Home',
       appointments: 'Book Appointment'
     },
     sq: {
-      home: 'Ballina',
       appointments: 'Rezervo Takim'
     }
   }
@@ -25,30 +23,29 @@ const Navigation = () => {
       backgroundColor: '#2c3e50',
       padding: 'clamp(0.75rem, 2vw, 1rem) clamp(1rem, 4vw, 2rem)',
       display: 'flex',
-      justifyContent: 'flex-end',
+      justifyContent: 'space-between',
       alignItems: 'center',
       zIndex: 1000,
       boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
       flexWrap: 'wrap',
       gap: '1rem'
     }}>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'white' }}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          style={{ width: 'clamp(1.4rem, 4vw, 1.75rem)', height: 'clamp(1.4rem, 4vw, 1.75rem)' }}
+        >
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+        </svg>
+      </Link>
       <div style={{
         display: 'flex',
         gap: 'clamp(0.5rem, 3vw, 2rem)',
         alignItems: 'center',
         flexWrap: 'wrap'
       }}>
-        <Link
-          to="/"
-          style={{
-            color: 'white',
-            textDecoration: 'none',
-            fontSize: 'clamp(0.85rem, 2.5vw, 1rem)',
-            transition: 'opacity 0.3s'
-          }}
-        >
-          {navLinks[language].home}
-        </Link>
         <Link
           to="/appointments"
           style={{

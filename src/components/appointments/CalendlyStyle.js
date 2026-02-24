@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLanguage } from '../../context/LanguageContext'
 import { supabase } from '../../utils/supabase'
 
@@ -41,8 +41,7 @@ const CalendlyStyle = ({ translations }) => {
 
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
-  const [selectedTime, setSelectedTime] = useState(null)
-  const [step, setStep] = useState(1) // 1: date/time, 2: form
+  const [step, setStep] = useState(1) // 1: date, 2: form
   const [formData, setFormData] = useState({
     type: 'online-consultation',
     name: '',
@@ -52,10 +51,48 @@ const CalendlyStyle = ({ translations }) => {
   })
   const [message, setMessage] = useState({ type: '', text: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [bookedTimes, setBookedTimes] = useState([])
-  const [loadingTimes, setLoadingTimes] = useState(false)
+  const [blockedDates, setBlockedDates] = useState([])
 
-  const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('blocked_dates')
+          .select('blocked_date')
+        if (error) throw error
+        setBlockedDates(data.map(row => row.blocked_date))
+      } catch (error) {
+        console.error('Error fetching blocked dates:', error)
+      }
+    }
+    fetchBlockedDates()
+  }, [])
+
+  const toDateStr = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const getToday = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return today
+  }
+
+  const isDateDisabled = (date) => {
+    if (!date) return true
+    const today = getToday()
+    const maxDate = new Date(today)
+    maxDate.setDate(today.getDate() + 14)
+    const dayOfWeek = date.getDay()
+    if (date < today) return true
+    if (date > maxDate) return true
+    if (dayOfWeek === 0 || dayOfWeek === 6) return true
+    if (blockedDates.includes(toDateStr(date))) return true
+    return false
+  }
 
   // Get days in month
   const getDaysInMonth = (date) => {
@@ -68,25 +105,15 @@ const CalendlyStyle = ({ translations }) => {
 
     const days = []
 
-    // Add empty slots for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null)
     }
 
-    // Add all days in month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day))
     }
 
     return days
-  }
-
-  const isDateAvailable = (date) => {
-    if (!date) return false
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const dayOfWeek = date.getDay()
-    return date >= today && dayOfWeek !== 0 && dayOfWeek !== 6
   }
 
   const formatDate = (date) => {
@@ -102,54 +129,33 @@ const CalendlyStyle = ({ translations }) => {
   const handlePrevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
     setSelectedDate(null)
-    setSelectedTime(null)
-    setBookedTimes([])
   }
 
   const handleNextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
     setSelectedDate(null)
-    setSelectedTime(null)
-    setBookedTimes([])
-  }
-
-  const fetchBookedTimes = async (date) => {
-    setLoadingTimes(true)
-    try {
-      // Format date without timezone conversion
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const day = String(date.getDate()).padStart(2, '0')
-      const dateStr = `${year}-${month}-${day}`
-
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('appointment_time')
-        .eq('appointment_date', dateStr)
-        .in('status', ['pending', 'confirmed'])
-
-      if (error) throw error
-
-      const times = data.map(appointment => appointment.appointment_time)
-      setBookedTimes(times)
-    } catch (error) {
-      console.error('Error fetching booked times:', error)
-      setBookedTimes([])
-    } finally {
-      setLoadingTimes(false)
-    }
   }
 
   const handleDateClick = (date) => {
-    if (isDateAvailable(date)) {
+    if (!isDateDisabled(date)) {
       setSelectedDate(date)
-      setSelectedTime(null)
-      fetchBookedTimes(date)
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Re-validate date on submit
+    if (!selectedDate || isDateDisabled(selectedDate)) {
+      setMessage({
+        type: 'error',
+        text: language === 'en'
+          ? 'The selected date is not available. Please choose another date.'
+          : 'Data e zgjedhur nuk është e disponueshme. Ju lutemi zgjidhni një datë tjetër.'
+      })
+      return
+    }
+
     const isConsultation = formData.type.includes('consultation')
     if (isConsultation && !formData.details.trim()) {
       setMessage({ type: 'error', text: t('errorMessage') })
@@ -160,16 +166,12 @@ const CalendlyStyle = ({ translations }) => {
     setMessage({ type: '', text: '' })
 
     try {
-      // Format date without timezone conversion
-      const year = selectedDate.getFullYear()
-      const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
-      const day = String(selectedDate.getDate()).padStart(2, '0')
-      const dateStr = `${year}-${month}-${day}`
+      const dateStr = toDateStr(selectedDate)
 
       const appointmentData = {
         appointment_type: formData.type,
         appointment_date: dateStr,
-        appointment_time: selectedTime,
+        appointment_time: null,
         client_name: formData.name,
         client_email: formData.email,
         client_phone: formData.phone,
@@ -185,15 +187,9 @@ const CalendlyStyle = ({ translations }) => {
 
       setMessage({ type: 'success', text: t('successMessage') })
 
-      // Refresh booked times to show the newly booked slot as unavailable
-      if (selectedDate) {
-        await fetchBookedTimes(selectedDate)
-      }
-
       setTimeout(() => {
         setStep(1)
         setSelectedDate(null)
-        setSelectedTime(null)
         setFormData({ type: 'online-consultation', name: '', email: '', phone: '', details: '' })
         setMessage({ type: '', text: '' })
         setIsSubmitting(false)
@@ -267,10 +263,9 @@ const CalendlyStyle = ({ translations }) => {
             fontSize: '0.9rem',
             color: '#0d47a1'
           }}>
-            <div style={{ fontWeight: '600', marginBottom: '0.3rem' }}>
+            <div style={{ fontWeight: '600' }}>
               {formatDate(selectedDate)}
             </div>
-            <div>{selectedTime}</div>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -504,246 +499,165 @@ const CalendlyStyle = ({ translations }) => {
           </div>
       </div>
 
-      {/* Calendar and Booking Section */}
+      {/* Calendar Section */}
       <div style={{
         backgroundColor: 'white',
         borderRadius: '8px',
         overflow: 'hidden',
         boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
       }}>
-        <div className="calendar-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: selectedDate ? 'minmax(0, 1fr) minmax(0, 300px)' : '1fr',
-          minHeight: '500px'
-        }}>
-          {/* Calendar Section */}
-          <div className="calendar-section" style={{
-            padding: 'clamp(1rem, 3vw, 2rem)',
-            borderRight: selectedDate ? '1px solid #e5e7eb' : 'none'
+        <div style={{ padding: 'clamp(1rem, 3vw, 2rem)' }}>
+          <h2 style={{
+            fontSize: 'clamp(1.2rem, 4vw, 1.5rem)',
+            fontWeight: '600',
+            marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+            color: '#1a1a1a'
           }}>
-            <h2 style={{
-              fontSize: 'clamp(1.2rem, 4vw, 1.5rem)',
+            {language === 'en' ? 'Select a Date' : 'Zgjidh Datën'}
+          </h2>
+
+          {/* Month Navigation */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem'
+          }}>
+            <button
+              onClick={handlePrevMonth}
+              style={{
+                padding: '0.5rem',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                color: '#6b7280'
+              }}
+            >
+              ‹
+            </button>
+            <div style={{
+              fontSize: 'clamp(1rem, 3vw, 1.1rem)',
               fontWeight: '600',
-              marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
               color: '#1a1a1a'
             }}>
-              {language === 'en' ? 'Select a Date & Time' : 'Zgjidh Datën & Orën'}
-            </h2>
+              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+            </div>
+            <button
+              onClick={handleNextMonth}
+              style={{
+                padding: '0.5rem',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                color: '#6b7280'
+              }}
+            >
+              ›
+            </button>
+          </div>
 
-            {/* Month Navigation */}
+          {/* Calendar Grid */}
+          <div>
+            {/* Day Headers */}
             <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1.5rem'
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: '0.5rem',
+              marginBottom: '0.5rem'
             }}>
-              <button
-                onClick={handlePrevMonth}
-                style={{
-                  padding: '0.5rem',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '1.2rem',
-                  color: '#6b7280'
-                }}
-              >
-                ‹
-              </button>
-              <div style={{
-                fontSize: 'clamp(1rem, 3vw, 1.1rem)',
-                fontWeight: '600',
-                color: '#1a1a1a'
-              }}>
-                {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-              </div>
-              <button
-                onClick={handleNextMonth}
-                style={{
-                  padding: '0.5rem',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '1.2rem',
-                  color: '#6b7280'
-                }}
-              >
-                ›
-              </button>
+              {dayNames.map(day => (
+                <div key={day} style={{
+                  textAlign: 'center',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                  color: '#9ca3af',
+                  padding: '0.5rem 0'
+                }}>
+                  {day}
+                </div>
+              ))}
             </div>
 
-            {/* Calendar Grid */}
-            <div>
-              {/* Day Headers */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '0.5rem',
-                marginBottom: '0.5rem'
-              }}>
-                {dayNames.map(day => (
-                  <div key={day} style={{
-                    textAlign: 'center',
-                    fontSize: '0.8rem',
-                    fontWeight: '600',
-                    color: '#9ca3af',
-                    padding: '0.5rem 0'
-                  }}>
-                    {day}
-                  </div>
-                ))}
-              </div>
+            {/* Days */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: 'clamp(0.25rem, 1vw, 0.5rem)'
+            }}>
+              {getDaysInMonth(currentMonth).map((date, idx) => {
+                const disabled = isDateDisabled(date)
+                const isSelected = selectedDate && date &&
+                  selectedDate.toDateString() === date.toDateString()
 
-              {/* Days */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: 'clamp(0.25rem, 1vw, 0.5rem)'
-              }}>
-                {getDaysInMonth(currentMonth).map((date, idx) => {
-                  const available = isDateAvailable(date)
-                  const isSelected = selectedDate && date &&
-                    selectedDate.toDateString() === date.toDateString()
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => date && handleDateClick(date)}
-                      disabled={!available}
-                      style={{
-                        padding: '0.75rem',
-                        border: isSelected ? '2px solid #006bff' : '1px solid transparent',
-                        borderRadius: '6px',
-                        backgroundColor: isSelected ? '#e6f2ff' : (available ? 'white' : 'transparent'),
-                        color: isSelected ? '#006bff' : (available ? '#1a1a1a' : '#d1d5db'),
-                        cursor: available ? 'pointer' : 'default',
-                        fontSize: '0.9rem',
-                        fontWeight: isSelected ? '600' : 'normal',
-                        transition: 'all 0.15s'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (available && !isSelected) {
-                          e.target.style.backgroundColor = '#f3f4f6'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (available && !isSelected) {
-                          e.target.style.backgroundColor = 'white'
-                        }
-                      }}
-                    >
-                      {date ? date.getDate() : ''}
-                    </button>
-                  )
-                })}
-              </div>
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => date && handleDateClick(date)}
+                    disabled={disabled || !date}
+                    style={{
+                      padding: '0.75rem',
+                      border: isSelected ? '2px solid #006bff' : '1px solid transparent',
+                      borderRadius: '6px',
+                      backgroundColor: isSelected ? '#e6f2ff' : (!disabled && date ? 'white' : 'transparent'),
+                      color: isSelected ? '#006bff' : (!disabled && date ? '#1a1a1a' : '#d1d5db'),
+                      cursor: (!disabled && date) ? 'pointer' : (date ? 'not-allowed' : 'default'),
+                      fontSize: '0.9rem',
+                      fontWeight: isSelected ? '600' : 'normal',
+                      transition: 'all 0.15s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!disabled && date && !isSelected) {
+                        e.target.style.backgroundColor = '#f3f4f6'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!disabled && date && !isSelected) {
+                        e.target.style.backgroundColor = 'white'
+                      }
+                    }}
+                  >
+                    {date ? date.getDate() : ''}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
-          {/* Time Slots Section */}
+          {/* Selected date summary + Next button */}
           {selectedDate && (
-            <div style={{
-              padding: 'clamp(1rem, 3vw, 2rem)',
-              backgroundColor: '#fafafa'
-            }}>
-              <h3 style={{
-                fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
-                fontWeight: '600',
-                marginBottom: 'clamp(0.75rem, 2vw, 1rem)',
-                color: '#1a1a1a'
+            <div style={{ marginTop: '1.5rem' }}>
+              <div style={{
+                padding: '1rem',
+                backgroundColor: '#f0f7ff',
+                borderRadius: '6px',
+                marginBottom: '1rem',
+                fontSize: '0.9rem',
+                color: '#0d47a1',
+                fontWeight: '600'
               }}>
                 {formatDate(selectedDate)}
-              </h3>
-
-              {loadingTimes && (
-                <div style={{
-                  padding: '1rem',
-                  textAlign: 'center',
-                  color: '#6b7280',
-                  fontSize: '0.9rem'
-                }}>
-                  {language === 'en' ? 'Checking availability...' : 'Duke kontrolluar disponueshmërinë...'}
-                </div>
-              )}
-
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'clamp(0.4rem, 1.5vw, 0.5rem)',
-                maxHeight: '400px',
-                overflowY: 'auto'
-              }}>
-                {timeSlots.map(time => {
-                  const isSelected = selectedTime === time
-                  const isBooked = bookedTimes.includes(time)
-                  return (
-                    <button
-                      key={time}
-                      onClick={() => !isBooked && setSelectedTime(time)}
-                      disabled={isBooked}
-                      style={{
-                        padding: '0.875rem',
-                        border: isBooked
-                          ? '1px solid #e5e7eb'
-                          : isSelected ? '2px solid #006bff' : '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        backgroundColor: isBooked
-                          ? '#f9fafb'
-                          : isSelected ? '#006bff' : 'white',
-                        color: isBooked
-                          ? '#9ca3af'
-                          : isSelected ? 'white' : '#1a1a1a',
-                        cursor: isBooked ? 'not-allowed' : 'pointer',
-                        fontSize: '0.95rem',
-                        fontWeight: '500',
-                        textAlign: 'center',
-                        transition: 'all 0.15s',
-                        opacity: isBooked ? 0.6 : 1
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected && !isBooked) {
-                          e.target.style.borderColor = '#006bff'
-                          e.target.style.color = '#006bff'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected && !isBooked) {
-                          e.target.style.borderColor = '#d1d5db'
-                          e.target.style.color = '#1a1a1a'
-                        }
-                      }}
-                    >
-                      {isBooked
-                        ? (language === 'en' ? `${time} - Booked` : `${time} - Rezervuar`)
-                        : time
-                      }
-                    </button>
-                  )
-                })}
               </div>
-
-              {selectedTime && (
-                <button
-                  onClick={() => setStep(2)}
-                  style={{
-                    width: '100%',
-                    marginTop: '1.5rem',
-                    padding: '0.875rem',
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    backgroundColor: '#006bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0056d2'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#006bff'}
-                >
-                  {language === 'en' ? 'Next' : 'Vazhdo'}
-                </button>
-              )}
+              <button
+                onClick={() => setStep(2)}
+                style={{
+                  width: '100%',
+                  padding: '0.875rem',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  backgroundColor: '#006bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#0056d2'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#006bff'}
+              >
+                {language === 'en' ? 'Next' : 'Vazhdo'}
+              </button>
             </div>
           )}
         </div>

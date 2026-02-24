@@ -1,10 +1,11 @@
 import React from 'react'
-import { LanguageProvider } from '../context/LanguageContext'
+import { LanguageProvider, useLanguage } from '../context/LanguageContext'
 import Navigation from '../components/Navigation'
 import CalendlyStyle from '../components/appointments/CalendlyStyle'
 
 const appointmentTranslations = {
   en: {
+    subtitle: 'Book your speech therapy appointment',
     pageTitle: 'Book an Appointment',
     selectDate: 'Select Date',
     selectTime: 'Select Time',
@@ -26,6 +27,7 @@ const appointmentTranslations = {
     errorMessage: 'Please fill in all required fields',
   },
   sq: {
+    subtitle: 'Rezervoni takimin tuaj',
     pageTitle: 'Rezervo një Takim',
     selectDate: 'Zgjidh Datën',
     selectTime: 'Zgjidh Orën',
@@ -48,9 +50,12 @@ const appointmentTranslations = {
   }
 }
 
-const AppointmentsPage = () => {
+const AppointmentsContent = () => {
+  const { language } = useLanguage()
+  const t = appointmentTranslations[language]
+
   return (
-    <LanguageProvider>
+    <>
       <style>{`
         @media (max-width: 768px) {
           .calendar-grid {
@@ -85,7 +90,7 @@ const AppointmentsPage = () => {
             fontSize: 'clamp(0.9rem, 3vw, 1rem)',
             color: '#6b7280'
           }}>
-            Book your speech therapy appointment
+            {t.subtitle}
           </p>
         </section>
 
@@ -93,6 +98,14 @@ const AppointmentsPage = () => {
           <CalendlyStyle translations={appointmentTranslations} />
         </section>
       </div>
+    </>
+  )
+}
+
+const AppointmentsPage = () => {
+  return (
+    <LanguageProvider>
+      <AppointmentsContent />
     </LanguageProvider>
   )
 }

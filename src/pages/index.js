@@ -2,6 +2,7 @@ import React from 'react'
 import { LanguageProvider } from '../context/LanguageContext'
 import Navigation from '../components/Navigation'
 import Design1 from '../components/Design1'
+import ArtieChatbot from '../components/ArtieChatbot'
 
 const IndexPage = () => {
   return (
@@ -9,6 +10,7 @@ const IndexPage = () => {
       <div style={{ paddingTop: '60px' }}>
         <Navigation />
         <Design1 />
+        <ArtieChatbot />
       </div>
     </LanguageProvider>
   )

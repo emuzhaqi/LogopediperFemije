@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext'
 import image1 from '../images/image1.jpg'
 import image2 from '../images/image2.jpg'
 import image3 from '../images/image3.jpg'
+import image4 from '../images/image4.jpg'
 
 const Design1 = () => {
   const { t } = useLanguage()
@@ -102,7 +103,7 @@ const Design1 = () => {
           padding: '0 1rem'
         }}>
           {[
-            { img: image2, title: t('service1'), desc: t('service1Desc') },
+            { img: image4, title: t('service1'), desc: t('service1Desc') },
             { img: image3, title: t('service2'), desc: t('service2Desc') },
             { img: image1, title: t('service4'), desc: t('service4Desc') }
           ].map((service, index) => (

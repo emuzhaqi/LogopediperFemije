@@ -38,6 +38,13 @@ export const translations = {
     email: 'Email',
     phone: 'Phone',
     location: 'Location',
+
+    // Artie Chatbot
+    artieTitle: 'Chat with Artie',
+    artieGreeting: "Hi! I'm Artie, your speech therapy assistant. How can I help you today?",
+    artiePlaceholder: 'Ask me about speech therapy…',
+    artieSend: 'Send',
+    artieError: "Sorry, I can't reach the server right now. Please try again later.",
   },
   sq: {
     // Navigation (Albanian)
@@ -49,7 +56,7 @@ export const translations = {
     language: 'Gjuha',
 
     // Common
-    welcome: 'Mirë se vini në LogopediperFemije',
+    welcome: 'Mirë se vini në Logopedi për Fëmijë',
     tagline: 'Terapi Profesionale e të Folurit për Fëmijë',
     aboutTitle: 'Rreth Shërbimeve Tona',
     aboutText: 'Ne ofrojmë shërbime të specializuara të terapisë së të folurit për fëmijë, duke i ndihmuar ata të zhvillojnë aftësitë e komunikimit në një mjedis mbështetës dhe tërheqës.',
@@ -61,9 +68,9 @@ export const translations = {
     getStarted: 'Fillo Tani',
 
     // Services
-    service1: 'Vlerësimi i të Folurit',
+    service1: 'Vlerësim Logopedik',
     service1Desc: 'Vlerësim gjithëpërfshirës i zhvillimit të të folurit dhe gjuhës',
-    service2: 'Terapi Individuale',
+    service2: 'Terapi Logopedike',
     service2Desc: 'Seanca terapie një-me-një të përshtatura për nevojat e fëmijës tuaj',
     service3: 'Seanca Grupore',
     service3Desc: 'Aktivitete grupore interaktive për të praktikuar komunikimin social',
@@ -74,6 +81,13 @@ export const translations = {
     email: 'Email',
     phone: 'Telefon',
     location: 'Vendndodhja',
+
+    // Artie Chatbot
+    artieTitle: 'Bisedo me Artie',
+    artieGreeting: "Përshëndetje! Jam Artie, asistenti juaj i terapisë së të folurit. Si mund t'ju ndihmoj?",
+    artiePlaceholder: 'Pyesni për terapinë e të folurit…',
+    artieSend: 'Dërgo',
+    artieError: 'Na vjen keq, nuk mund të lidhem me serverin. Ju lutemi provoni përsëri më vonë.',
   }
 }
 

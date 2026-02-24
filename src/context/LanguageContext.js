@@ -78,10 +78,19 @@ export const translations = {
 }
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState('en')
+  const [language, setLanguage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('language') || 'sq'
+    }
+    return 'sq'
+  })
 
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'sq' : 'en')
+    setLanguage(prev => {
+      const next = prev === 'en' ? 'sq' : 'en'
+      if (typeof window !== 'undefined') localStorage.setItem('language', next)
+      return next
+    })
   }
 
   const t = (key) => translations[language][key] || key

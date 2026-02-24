@@ -192,12 +192,12 @@ const Design1 = () => {
               <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
             </svg>
-            <a href="https://instagram.com/logopedi.per.femije" target="_blank" rel="noopener noreferrer" style={{
+            <a href="https://instagram.com/logopede_eva_alimeri" target="_blank" rel="noopener noreferrer" style={{
               color: 'white',
               textDecoration: 'none',
               transition: 'opacity 0.3s'
             }}>
-              @logopedi.per.femije
+              Logopede Eva 🦋
             </a>
           </div>
         </div>

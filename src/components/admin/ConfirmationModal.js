@@ -36,26 +36,29 @@ const ConfirmationModal = ({ appointment, onClose, onSuccess }) => {
     setSending(true)
 
     try {
-      // Generate PayPal payment link and save to appointment
-      const { paymentLink } = await generateAppointmentPaymentLink({
-        appointmentId: appointment.id,
-        amount,
-        currency: 'EUR',
-      })
-
-      // Send confirmation email with the payment link
-      const emailResult = await sendConfirmationEmail(appointment, paymentLink)
-      if (!emailResult.success) {
-        throw new Error(emailResult.error || 'Failed to send email')
-      }
-
-      // Update appointment status to confirmed
+      // Update appointment status to confirmed first
       const { error: updateError } = await supabase
         .from('appointments')
         .update({ status: 'confirmed' })
         .eq('id', appointment.id)
 
       if (updateError) throw updateError
+
+      // Generate PayPal payment link and send confirmation email (best-effort)
+      try {
+        const { paymentLink } = await generateAppointmentPaymentLink({
+          appointmentId: appointment.id,
+          amount,
+          currency: 'EUR',
+        })
+
+        const emailResult = await sendConfirmationEmail(appointment, paymentLink)
+        if (!emailResult.success) {
+          console.error('Email send failed:', emailResult.error)
+        }
+      } catch (emailErr) {
+        console.error('Payment/email error (appointment already confirmed):', emailErr)
+      }
 
       if (onSuccess) onSuccess()
       onClose()

@@ -8,12 +8,12 @@
  * @type {import('gatsby').GatsbyConfig}
  */
 module.exports = {
-  pathPrefix: "/LogopediperFemije",
+  pathPrefix: "/",
   siteMetadata: {
     title: `LogopediperFemije`,
     description: `A Gatsby-based React application for LogopediperFemije`,
     author: `@emuzhaqi`,
-    siteUrl: `https://emuzhaqi.github.io/LogopediperFemije`,
+    siteUrl: `https://www.logopediperfemije.com`,
   },
   plugins: [
     `gatsby-plugin-image`,

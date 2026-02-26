@@ -35,8 +35,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-          GATSBY_OLLAMA_URL: ${{ secrets.GATSBY_OLLAMA_URL }}
-          GATSBY_OLLAMA_MODEL: ${{ secrets.GATSBY_OLLAMA_MODEL }}
+          GATSBY_GROQ_API_KEY: ${{ secrets.GATSBY_GROQ_API_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

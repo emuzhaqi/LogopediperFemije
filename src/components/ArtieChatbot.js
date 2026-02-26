@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useLanguage } from '../context/LanguageContext'
 
-const OLLAMA_URL = process.env.GATSBY_OLLAMA_URL || 'http://localhost:11434'
-const OLLAMA_MODEL = process.env.GATSBY_OLLAMA_MODEL || 'gemma3:12b'
-const CHAT_ENDPOINT = `${OLLAMA_URL}/api/chat`
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
+const PRIMARY_MODEL = 'llama-3.3-70b-versatile'
+const FALLBACK_MODEL = 'llama-3.1-8b-instant'
 
 const SYSTEM_PROMPT_EN = `You are Artie, a friendly assistant for "Logopedi për Fëmijë" — a children's speech therapy clinic. Your role is to listen empathetically to parents' concerns about their child's speech and language, offer a couple of simple practical tips, and guide them toward booking a professional evaluation.
 
@@ -261,15 +261,28 @@ export default function ArtieChatbot() {
     setMessages(prev => [...prev, { role: 'assistant', content: '' }])
 
     try {
-      const response = await fetch(CHAT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: OLLAMA_MODEL,
-          messages: [systemMessage, ...updatedMessages],
-          stream: true,
-        }),
-      })
+      const apiKey = process.env.GATSBY_GROQ_API_KEY
+
+      const callGroq = (model) =>
+        fetch(GROQ_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [systemMessage, ...updatedMessages],
+            stream: true,
+          }),
+        })
+
+      let response = await callGroq(PRIMARY_MODEL)
+
+      // Fall back to the smaller model if the primary quota is exhausted
+      if (response.status === 429) {
+        response = await callGroq(FALLBACK_MODEL)
+      }
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
@@ -279,23 +292,27 @@ export default function ArtieChatbot() {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n').filter(Boolean)
-        for (const line of lines) {
+        const chunk = decoder.decode(value, { stream: true })
+        // Groq streams OpenAI-style SSE: lines starting with "data: "
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue
+          const payload = line.slice(6).trim()
+          if (payload === '[DONE]') break
           try {
-            const data = JSON.parse(line)
-            if (data.message?.content) {
+            const data = JSON.parse(payload)
+            const content = data.choices?.[0]?.delta?.content
+            if (content) {
               setMessages(prev => {
                 const updated = [...prev]
                 updated[updated.length - 1] = {
                   ...updated[updated.length - 1],
-                  content: updated[updated.length - 1].content + data.message.content,
+                  content: updated[updated.length - 1].content + content,
                 }
                 return updated
               })
             }
           } catch {
-            // skip malformed JSON lines
+            // skip malformed SSE lines
           }
         }
       }

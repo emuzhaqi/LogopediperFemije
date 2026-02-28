@@ -1,6 +1,6 @@
 import React from 'react'
 import { LanguageProvider } from '../context/LanguageContext'
-import Navigation from '../components/Navigation'
+import Navigation, { FloatingLangToggle } from '../components/Navigation'
 import Design1 from '../components/Design1'
 import ArtieChatbot from '../components/ArtieChatbot'
 
@@ -11,6 +11,7 @@ const IndexPage = () => {
         <Navigation />
         <Design1 />
         <ArtieChatbot />
+        <FloatingLangToggle />
       </div>
     </LanguageProvider>
   )

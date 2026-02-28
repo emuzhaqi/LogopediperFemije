@@ -26,5 +26,17 @@ module.exports = {
         path: `${__dirname}/src/images`,
       },
     },
+    {
+      resolve: `gatsby-plugin-manifest`,
+      options: {
+        name: `LogopediperFemije`,
+        short_name: `LogopediperFemije`,
+        start_url: `/`,
+        background_color: `#ffffff`,
+        theme_color: `#ffffff`,
+        display: `minimal-ui`,
+        icon: `src/images/favicon-preview.png`,
+      },
+    },
   ],
 }

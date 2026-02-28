@@ -117,7 +117,6 @@ const AboutContent = () => {
             marginTop: '1.2rem',
             marginBottom: 0,
             color: '#34495e',
-            paddingLeft: 'clamp(0px, 6vw, 3.5rem)',
             textAlign: 'justify',
           }}>
             {para}

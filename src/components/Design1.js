@@ -139,70 +139,78 @@ const Design1 = () => {
         color: 'white'
       }}>
         <div style={{
-          maxWidth: '1200px',
+          maxWidth: '1100px',
           margin: '0 auto',
-          paddingLeft: 'clamp(1rem, 4vw, 2rem)'
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 'clamp(4rem, 10vw, 9rem)',
+          alignItems: 'flex-start',
         }}>
-          <h2 style={{
-            fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
-            marginBottom: '2.5rem'
-          }}>
-            {t('contactTitle')}
-          </h2>
-
+          {/* Left column: map */}
           <div style={{
+            flex: '1 1 320px',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            height: '280px',
+          }}>
+            <iframe
+              title="Klinike Logopedike Eva Alimeri"
+              src="https://maps.google.com/maps?q=Klinike+Logopedike+Eva+Alimeri+Tirane&output=embed&hl=sq"
+              width="100%"
+              height="100%"
+              style={{ border: 0, display: 'block' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+
+          {/* Right column: title + contact rows */}
+          <div style={{
+            flex: '1 1 280px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1.5rem',
-            fontSize: 'clamp(1rem, 3vw, 1.15rem)'
+            gap: '1.75rem',
           }}>
-          {/* Phone */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-            </svg>
-            <a href="tel:+355693664953" style={{
-              color: 'white',
-              textDecoration: 'none',
-              transition: 'opacity 0.3s'
+            <h2 style={{
+              fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
+              margin: 0,
             }}>
-              +355 69 366 4953
-            </a>
-          </div>
+              {t('contactTitle')}
+            </h2>
 
-          {/* Email */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-            <a href="mailto:logopediperfemije@gmail.com" style={{
-              color: 'white',
-              textDecoration: 'none',
-              transition: 'opacity 0.3s',
-              wordBreak: 'break-word'
-            }}>
-              logopediperfemije@gmail.com
-            </a>
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: 'clamp(1rem, 3vw, 1.15rem)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              <a href="tel:+355693664953" style={{ color: 'white', textDecoration: 'none' }}>
+                +355 69 366 4953
+              </a>
+            </div>
 
-          {/* Instagram */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-            </svg>
-            <a href="https://instagram.com/logopede_eva_alimeri" target="_blank" rel="noopener noreferrer" style={{
-              color: 'white',
-              textDecoration: 'none',
-              transition: 'opacity 0.3s'
-            }}>
-              Logopede Eva 🦋
-            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: 'clamp(1rem, 3vw, 1.15rem)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <a href="mailto:logopediperfemije@gmail.com" style={{ color: 'white', textDecoration: 'none', wordBreak: 'break-word' }}>
+                logopediperfemije@gmail.com
+              </a>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: 'clamp(1rem, 3vw, 1.15rem)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              <a href="https://instagram.com/logopede_eva_alimeri" target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'none' }}>
+                Logopede Eva 🦋
+              </a>
+            </div>
           </div>
         </div>
-      </div>
       </section>
     </div>
   )

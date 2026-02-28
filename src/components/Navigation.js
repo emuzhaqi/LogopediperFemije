@@ -2,14 +2,59 @@ import React from 'react'
 import { Link } from 'gatsby'
 import { useLanguage } from '../context/LanguageContext'
 
-const Navigation = () => {
+const FloatingLangToggle = () => {
   const { language, toggleLanguage } = useLanguage()
+  return (
+    <button
+      onClick={toggleLanguage}
+      title={language === 'en' ? 'Switch to Albanian' : 'Switch to English'}
+      style={{
+        position: 'fixed',
+        bottom: '1.5rem',
+        left: '1.5rem',
+        zIndex: 999,
+        width: '52px',
+        height: '52px',
+        borderRadius: '50%',
+        backgroundColor: '#2c3e50',
+        color: 'white',
+        border: 'none',
+        cursor: 'pointer',
+        fontSize: '1.3rem',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'scale(1.1)'
+        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'scale(1)'
+        e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.25)'
+      }}
+    >
+      {language === 'en' ? '🇦🇱' : '🇬🇧'}
+    </button>
+  )
+}
+
+export { FloatingLangToggle }
+
+const Navigation = () => {
+  const { language } = useLanguage()
 
   const navLinks = {
     en: {
+      about: 'About Us',
+      blog: 'Blog',
       appointments: 'Book Appointment'
     },
     sq: {
+      about: 'Rreth Nesh',
+      blog: 'Blog',
       appointments: 'Rezervo Takim'
     }
   }
@@ -47,6 +92,30 @@ const Navigation = () => {
         flexWrap: 'wrap'
       }}>
         <Link
+          to="/blog"
+          style={{
+            color: 'white',
+            textDecoration: 'none',
+            fontSize: 'clamp(0.85rem, 2.5vw, 1rem)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {navLinks[language].blog}
+        </Link>
+
+        <Link
+          to="/about"
+          style={{
+            color: 'white',
+            textDecoration: 'none',
+            fontSize: 'clamp(0.85rem, 2.5vw, 1rem)',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          {navLinks[language].about}
+        </Link>
+
+        <Link
           to="/appointments"
           style={{
             color: 'white',
@@ -62,23 +131,6 @@ const Navigation = () => {
           {navLinks[language].appointments}
         </Link>
 
-        <button
-          onClick={toggleLanguage}
-          style={{
-            padding: 'clamp(0.4rem, 1.5vw, 0.5rem) clamp(0.75rem, 3vw, 1.5rem)',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)',
-            fontWeight: 'bold',
-            transition: 'all 0.3s',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {language === 'en' ? 'SQ 🇦🇱' : 'EN 🇬🇧'}
-        </button>
       </div>
     </nav>
   )

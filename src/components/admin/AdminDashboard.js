@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { useAdminAuth } from '../../context/AdminAuthContext'
 import AppointmentsTable from './AppointmentsTable'
 import PaymentLinkGenerator from './PaymentLinkGenerator'
 import BlockedDates from './BlockedDates'
+import AdminNavigation from './AdminNavigation'
 
 const AdminDashboard = () => {
-  const { logout } = useAdminAuth()
   const [statusFilter, setStatusFilter] = useState('pending')
   const [dateRange, setDateRange] = useState({
     start: '',
@@ -16,51 +15,10 @@ const AdminDashboard = () => {
     <div style={{
       minHeight: '100vh',
       backgroundColor: '#f9fafb',
-      padding: 'clamp(1rem, 3vw, 2rem)'
+      padding: 'clamp(1rem, 3vw, 2rem)',
+      paddingTop: 'calc(clamp(1rem, 3vw, 2rem) + 4rem)'
     }}>
-      {/* Header */}
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        padding: 'clamp(1rem, 3vw, 1.5rem)',
-        marginBottom: 'clamp(1rem, 3vw, 2rem)',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 'clamp(0.5rem, 2vw, 1rem)'
-      }}>
-        <h1 style={{
-          fontSize: 'clamp(1.25rem, 4vw, 1.875rem)',
-          fontWeight: '600',
-          color: '#1a1a1a',
-          margin: 0,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-        }}>
-          Admin Panel
-        </h1>
-
-        <button
-          onClick={logout}
-          style={{
-            backgroundColor: '#dc2626',
-            color: 'white',
-            padding: 'clamp(0.5rem, 2vw, 0.625rem) clamp(1rem, 3vw, 1.25rem)',
-            fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
-            fontWeight: '500',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#b91c1c'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#dc2626'}
-        >
-          Logout
-        </button>
-      </div>
+      <AdminNavigation currentPage="home" />
 
       {/* Filters */}
       <div style={{

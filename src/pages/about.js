@@ -1,15 +1,101 @@
-import React from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'gatsby'
 import { LanguageProvider, useLanguage } from '../context/LanguageContext'
 import Navigation from '../components/Navigation'
 import evaPhoto from '../images/eva.jpg'
-import image1 from '../images/image1.jpg'
-import image2 from '../images/image2.jpg'
-import image3 from '../images/image3.jpg'
-import image4 from '../images/image4.jpg'
+import klinika1 from '../images/klinika1.jpeg'
+import klinika2 from '../images/klinika2.jpeg'
+import klinika3 from '../images/klinika3.jpeg'
+import klinika4 from '../images/klinika4.jpeg'
+import klinika5 from '../images/klinika5.jpeg'
+
+// Add more clinic images here as needed
+const clinicImages = [klinika1, klinika2, klinika3, klinika4, klinika5]
+
+const Lightbox = ({ images, startIndex, onClose }) => {
+  const [index, setIndex] = useState(startIndex)
+
+  const prev = useCallback(() => setIndex(i => (i - 1 + images.length) % images.length), [images.length])
+  const next = useCallback(() => setIndex(i => (i + 1) % images.length), [images.length])
+
+  useEffect(() => {
+    const handleKey = e => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft') prev()
+      if (e.key === 'ArrowRight') next()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose, prev, next])
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        backgroundColor: 'rgba(0,0,0,0.92)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      {/* Prev */}
+      <button
+        onClick={e => { e.stopPropagation(); prev() }}
+        style={{
+          position: 'absolute', left: '1rem',
+          background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+          width: '48px', height: '48px', cursor: 'pointer',
+          color: 'white', fontSize: '1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >&#8592;</button>
+
+      {/* Image */}
+      <img
+        src={images[index]}
+        alt={`Clinic space ${index + 1}`}
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxWidth: '90vw', maxHeight: '85vh',
+          objectFit: 'contain', borderRadius: '8px',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+        }}
+      />
+
+      {/* Next */}
+      <button
+        onClick={e => { e.stopPropagation(); next() }}
+        style={{
+          position: 'absolute', right: '1rem',
+          background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+          width: '48px', height: '48px', cursor: 'pointer',
+          color: 'white', fontSize: '1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >&#8594;</button>
+
+      {/* Close */}
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute', top: '1rem', right: '1rem',
+          background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '50%',
+          width: '40px', height: '40px', cursor: 'pointer',
+          color: 'white', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >&#10005;</button>
+
+      {/* Counter */}
+      <div style={{
+        position: 'absolute', bottom: '1.25rem',
+        color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', letterSpacing: '0.05em',
+      }}>
+        {index + 1} / {images.length}
+      </div>
+    </div>
+  )
+}
 
 const AboutContent = () => {
   const { t } = useLanguage()
+  const [lightboxIndex, setLightboxIndex] = useState(null)
 
   const credentials = [
     t('aboutCred1'),
@@ -174,8 +260,11 @@ const AboutContent = () => {
         </div>
       </section>
 
-      {/* Gallery — hidden until photos are updated */}
-      {false && <section style={{
+      {/* Gallery */}
+      {lightboxIndex !== null && (
+        <Lightbox images={clinicImages} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+      )}
+      <section style={{
         padding: 'clamp(2rem, 8vw, 5rem) 1.5rem',
         backgroundColor: '#f8f9fa'
       }}>
@@ -195,44 +284,57 @@ const AboutContent = () => {
         }}>
           {t('gallerySubtitle')}
         </p>
+        {/* Mosaic: first image large top-left, remaining fill the grid — max 5 shown */}
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'auto auto',
           gap: '0.75rem',
         }}>
-          <div style={{ gridColumn: '1', gridRow: '1 / 3' }}>
-            <img
-              src={image1}
-              alt="Clinic space 1"
+          {clinicImages.slice(0, 5).map((img, i) => (
+            <div
+              key={i}
+              onClick={() => setLightboxIndex(i)}
               style={{
-                width: '100%',
-                height: '100%',
-                minHeight: '280px',
-                objectFit: 'cover',
+                gridColumn: i === 0 ? '1 / 3' : 'auto',
+                gridRow: i === 0 ? '1' : 'auto',
+                cursor: 'pointer',
+                overflow: 'hidden',
                 borderRadius: '10px',
-                display: 'block'
+                position: 'relative',
               }}
-            />
-          </div>
-          {[image2, image3, image4, image1].map((img, i) => (
-            <div key={i}>
+            >
               <img
                 src={img}
-                alt={`Clinic space ${i + 2}`}
+                alt={`Clinic space ${i + 1}`}
                 style={{
                   width: '100%',
-                  height: '160px',
+                  height: i === 0 ? 'clamp(200px, 30vw, 340px)' : i === 1 ? '100%' : '160px',
                   objectFit: 'cover',
-                  borderRadius: '10px',
-                  display: 'block'
+                  objectPosition: i === 0 ? 'left center' : 'left top',
+                  display: 'block',
+                  transition: 'transform 0.25s ease',
                 }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
               />
+              {/* If more images than shown, overlay a count on the last thumbnail */}
+              {i === 4 && clinicImages.length > 5 && (
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white', fontSize: '1.4rem', fontWeight: 'bold',
+                }}>
+                  +{clinicImages.length - 5}
+                </div>
+              )}
             </div>
           ))}
         </div>
-      </section>}
+      </section>
 
       {/* Philosophy */}
       <section style={{

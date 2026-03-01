@@ -10,9 +10,9 @@
 module.exports = {
   pathPrefix: "/",
   siteMetadata: {
-    title: `LogopediperFemije`,
-    description: `A Gatsby-based React application for LogopediperFemije`,
-    author: `@emuzhaqi`,
+    title: `Logopedi për Fëmijë`,
+    description: `Terapi e të folurit për fëmijë me Eva Alimeri — logopede e licencuar. Shërbime konsultimi në person dhe online.`,
+    author: `Eva Alimeri`,
     siteUrl: `https://www.logopediperfemije.com`,
   },
   plugins: [
@@ -29,13 +29,19 @@ module.exports = {
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
-        name: `LogopediperFemije`,
+        name: `Logopedi për Fëmijë`,
         short_name: `LogopediperFemije`,
         start_url: `/`,
         background_color: `#ffffff`,
-        theme_color: `#ffffff`,
+        theme_color: `#3498db`,
         display: `minimal-ui`,
         icon: `src/images/favicon-preview.png`,
+      },
+    },
+    {
+      resolve: `gatsby-plugin-sitemap`,
+      options: {
+        output: `/sitemap`,
       },
     },
   ],

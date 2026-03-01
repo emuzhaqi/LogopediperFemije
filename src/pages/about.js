@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'gatsby'
+import { StaticImage } from 'gatsby-plugin-image'
 import { LanguageProvider, useLanguage } from '../context/LanguageContext'
 import Navigation from '../components/Navigation'
-import evaPhoto from '../images/eva.jpg'
 import klinika1 from '../images/klinika1.jpeg'
 import klinika2 from '../images/klinika2.jpeg'
 import klinika3 from '../images/klinika3.jpeg'
 import klinika4 from '../images/klinika4.jpeg'
 import klinika5 from '../images/klinika5.jpeg'
 
-// Add more clinic images here as needed
+// Raw imports kept for the lightbox only
 const clinicImages = [klinika1, klinika2, klinika3, klinika4, klinika5]
 
 const Lightbox = ({ images, startIndex, onClose }) => {
@@ -51,7 +51,7 @@ const Lightbox = ({ images, startIndex, onClose }) => {
       {/* Image */}
       <img
         src={images[index]}
-        alt={`Clinic space ${index + 1}`}
+        alt={`Klinika Logopedi për Fëmijë — hapësira ${index + 1}`}
         onClick={e => e.stopPropagation()}
         style={{
           maxWidth: '90vw', maxHeight: '85vh',
@@ -150,15 +150,15 @@ const AboutContent = () => {
         }}>
           {/* Photo */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            <img
-              src={evaPhoto}
+            <StaticImage
+              src="../images/eva.jpg"
               alt="Eva Alimeri"
+              layout="constrained"
+              width={320}
+              height={380}
+              objectFit="cover"
+              objectPosition="top"
               style={{
-                width: '100%',
-                maxWidth: '320px',
-                height: '380px',
-                objectFit: 'cover',
-                objectPosition: 'top',
                 borderRadius: '12px',
                 boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
               }}
@@ -284,7 +284,7 @@ const AboutContent = () => {
         }}>
           {t('gallerySubtitle')}
         </p>
-        {/* Mosaic: first image large top-left, remaining fill the grid — max 5 shown */}
+        {/* Mosaic: first image large top-left, remaining fill the grid */}
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
@@ -294,46 +294,108 @@ const AboutContent = () => {
           gap: '0.75rem',
           overflow: 'hidden',
         }}>
-          {clinicImages.slice(0, 5).map((img, i) => (
-            <div
-              key={i}
-              onClick={() => setLightboxIndex(i)}
-              style={{
-                gridColumn: i === 0 ? '1 / 3' : 'auto',
-                gridRow: i === 0 ? '1' : 'auto',
-                cursor: 'pointer',
-                overflow: 'hidden',
-                borderRadius: '10px',
-                position: 'relative',
-              }}
-            >
-              <img
-                src={img}
-                alt={`Clinic space ${i + 1}`}
-                style={{
-                  width: '100%',
-                  height: i === 0 ? 'clamp(200px, 30vw, 340px)' : i === 1 ? '100%' : '160px',
-                  objectFit: 'cover',
-                  objectPosition: i === 0 ? 'left center' : 'left top',
-                  display: 'block',
-                  transition: 'transform 0.25s ease',
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              />
-              {/* If more images than shown, overlay a count on the last thumbnail */}
-              {i === 4 && clinicImages.length > 5 && (
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'white', fontSize: '1.4rem', fontWeight: 'bold',
-                }}>
-                  +{clinicImages.length - 5}
-                </div>
-              )}
-            </div>
-          ))}
+          {/* Image 1 — large, spans 2 columns */}
+          <div
+            onClick={() => setLightboxIndex(0)}
+            style={{
+              gridColumn: '1 / 3',
+              gridRow: '1',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: '10px',
+              height: 'clamp(200px, 30vw, 340px)',
+            }}
+          >
+            <StaticImage
+              src="../images/klinika1.jpeg"
+              alt="Klinika Logopedi për Fëmijë — hapësira 1"
+              layout="fullWidth"
+              objectFit="cover"
+              objectPosition="left center"
+              style={{ height: '100%', transition: 'transform 0.25s ease' }}
+              imgStyle={{ transition: 'transform 0.25s ease' }}
+            />
+          </div>
+
+          {/* Image 2 */}
+          <div
+            onClick={() => setLightboxIndex(1)}
+            style={{
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: '10px',
+              height: 'clamp(200px, 30vw, 340px)',
+            }}
+          >
+            <StaticImage
+              src="../images/klinika2.jpeg"
+              alt="Klinika Logopedi për Fëmijë — hapësira 2"
+              layout="fullWidth"
+              objectFit="cover"
+              objectPosition="left top"
+              style={{ height: '100%' }}
+            />
+          </div>
+
+          {/* Image 3 */}
+          <div
+            onClick={() => setLightboxIndex(2)}
+            style={{
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: '10px',
+              height: '160px',
+            }}
+          >
+            <StaticImage
+              src="../images/klinika3.jpeg"
+              alt="Klinika Logopedi për Fëmijë — hapësira 3"
+              layout="fullWidth"
+              objectFit="cover"
+              objectPosition="left top"
+              style={{ height: '100%' }}
+            />
+          </div>
+
+          {/* Image 4 */}
+          <div
+            onClick={() => setLightboxIndex(3)}
+            style={{
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: '10px',
+              height: '160px',
+            }}
+          >
+            <StaticImage
+              src="../images/klinika4.jpeg"
+              alt="Klinika Logopedi për Fëmijë — hapësira 4"
+              layout="fullWidth"
+              objectFit="cover"
+              objectPosition="left top"
+              style={{ height: '100%' }}
+            />
+          </div>
+
+          {/* Image 5 */}
+          <div
+            onClick={() => setLightboxIndex(4)}
+            style={{
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: '10px',
+              height: '160px',
+            }}
+          >
+            <StaticImage
+              src="../images/klinika5.jpeg"
+              alt="Klinika Logopedi për Fëmijë — hapësira 5"
+              layout="fullWidth"
+              objectFit="cover"
+              objectPosition="left top"
+              style={{ height: '100%' }}
+            />
+          </div>
         </div>
       </section>
 
@@ -411,10 +473,55 @@ const AboutPage = () => {
 
 export default AboutPage
 
-export const Head = () => (
-  <>
-    <title>About Eva Alimeri — Logopedi për Fëmijë</title>
-    <meta name="description" content="Learn about Eva Alimeri, licensed speech-language pathologist specialising in children's communication therapy." />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  </>
-)
+const siteUrl = 'https://www.logopediperfemije.com'
+const pageUrl = `${siteUrl}/about`
+
+export const Head = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Eva Alimeri',
+    jobTitle: 'Speech-Language Pathologist',
+    description: 'Logopede e licencuar me specializim në terapinë e të folurit dhe gjuhës tek fëmijët.',
+    url: pageUrl,
+    image: `${siteUrl}/icons/icon-512x512.png`,
+    sameAs: ['https://www.instagram.com/logopede_eva_alimeri'],
+    worksFor: {
+      '@type': 'MedicalBusiness',
+      name: 'Logopedi për Fëmijë',
+      url: siteUrl,
+    },
+  }
+
+  return (
+    <>
+      <html lang="sq" />
+      <title>Rreth Eva Alimeri — Logopede e Licencuar | Logopedi për Fëmijë</title>
+      <meta name="description" content="Mësoni më shumë rreth Eva Alimerit, logopede e licencuar me eksperiencë në terapinë e të folurit dhe komunikimit tek fëmijët. Learn about Eva Alimeri, licensed speech-language pathologist." />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+      <link rel="canonical" href={pageUrl} />
+
+      {/* Hreflang */}
+      <link rel="alternate" hrefLang="sq" href={pageUrl} />
+      <link rel="alternate" hrefLang="en" href={pageUrl} />
+      <link rel="alternate" hrefLang="x-default" href={pageUrl} />
+
+      {/* Open Graph */}
+      <meta property="og:type" content="profile" />
+      <meta property="og:url" content={pageUrl} />
+      <meta property="og:title" content="Rreth Eva Alimeri — Logopede e Licencuar | Logopedi për Fëmijë" />
+      <meta property="og:description" content="Logopede e licencuar me specializim në terapinë e të folurit dhe gjuhës tek fëmijët. Licensed speech-language pathologist specialising in children's communication therapy." />
+      <meta property="og:image" content={`${siteUrl}/icons/icon-512x512.png`} />
+      <meta property="og:site_name" content="Logopedi për Fëmijë" />
+
+      {/* Twitter Card */}
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content="Rreth Eva Alimeri — Logopede e Licencuar" />
+      <meta name="twitter:description" content="Logopede e licencuar me specializim në terapinë e të folurit dhe gjuhës tek fëmijët." />
+      <meta name="twitter:image" content={`${siteUrl}/icons/icon-512x512.png`} />
+
+      {/* JSON-LD */}
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+    </>
+  )
+}

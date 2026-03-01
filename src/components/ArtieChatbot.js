@@ -60,6 +60,7 @@ const styles = {
     bottom: '92px',
     right: '24px',
     width: '380px',
+    maxWidth: 'calc(100vw - 48px)',
     height: '500px',
     borderRadius: '12px',
     boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
@@ -68,6 +69,7 @@ const styles = {
     overflow: 'hidden',
     zIndex: 1000,
     backgroundColor: '#fff',
+    boxSizing: 'border-box',
   },
   header: {
     backgroundColor: '#3498db',
@@ -137,6 +139,7 @@ const styles = {
   },
   input: {
     flex: 1,
+    minWidth: 0,
     border: '1px solid #ddd',
     borderRadius: '20px',
     padding: '8px 14px',
@@ -144,6 +147,8 @@ const styles = {
     outline: 'none',
     resize: 'none',
     fontFamily: 'inherit',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   sendButton: {
     backgroundColor: '#3498db',
@@ -205,8 +210,8 @@ export default function ArtieChatbot() {
           0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
           40% { opacity: 1; transform: scale(1); }
         }
-        @media (max-width: 420px) {
-          .artie-panel { width: calc(100vw - 24px) !important; right: 12px !important; }
+        @media (max-width: 500px) {
+          .artie-panel { width: calc(100vw - 32px) !important; right: 16px !important; left: 16px !important; max-width: calc(100vw - 32px) !important; }
         }
       `
       document.head.appendChild(style)

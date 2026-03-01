@@ -224,7 +224,7 @@ const AboutContent = () => {
           }}>
             {t('aboutCredentialsTitle')}
           </h2>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
             {credentials.map((cred, i) => (
               <li key={i} style={{
                 display: 'flex',
@@ -292,6 +292,7 @@ const AboutContent = () => {
           gridTemplateColumns: 'repeat(3, 1fr)',
           gridTemplateRows: 'auto auto',
           gap: '0.75rem',
+          overflow: 'hidden',
         }}>
           {clinicImages.slice(0, 5).map((img, i) => (
             <div

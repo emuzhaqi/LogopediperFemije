@@ -112,10 +112,57 @@ const AppointmentsPage = () => {
 
 export default AppointmentsPage
 
-export const Head = () => (
-  <>
-    <title>Book Appointment - LogopediperFemije</title>
-    <meta name="description" content="Book a speech therapy appointment" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  </>
-)
+const siteUrl = 'https://www.logopediperfemije.com'
+const pageUrl = `${siteUrl}/appointments`
+
+export const Head = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ReserveAction',
+    name: 'Book a Speech Therapy Appointment',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: pageUrl,
+      actionPlatform: [
+        'https://schema.org/DesktopWebPlatform',
+        'https://schema.org/MobileWebPlatform',
+      ],
+    },
+    result: {
+      '@type': 'Reservation',
+      name: 'Speech Therapy Consultation',
+    },
+  }
+
+  return (
+    <>
+      <html lang="sq" />
+      <title>Rezervo Takim — Terapi e të Folurit | Logopedi për Fëmijë</title>
+      <meta name="description" content="Rezervoni takimin tuaj të terapisë së të folurit me Eva Alimeri. Konsultime në person dhe online të disponueshme. Book an in-person or online speech therapy appointment." />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+      <link rel="canonical" href={pageUrl} />
+
+      {/* Hreflang */}
+      <link rel="alternate" hrefLang="sq" href={pageUrl} />
+      <link rel="alternate" hrefLang="en" href={pageUrl} />
+      <link rel="alternate" hrefLang="x-default" href={pageUrl} />
+
+      {/* Open Graph */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={pageUrl} />
+      <meta property="og:title" content="Rezervo Takim — Terapi e të Folurit | Logopedi për Fëmijë" />
+      <meta property="og:description" content="Rezervoni takimin tuaj të terapisë së të folurit me Eva Alimeri. Konsultime në person dhe online të disponueshme." />
+      <meta property="og:image" content={`${siteUrl}/icons/icon-512x512.png`} />
+      <meta property="og:site_name" content="Logopedi për Fëmijë" />
+
+      {/* Twitter Card */}
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content="Rezervo Takim — Terapi e të Folurit" />
+      <meta name="twitter:description" content="Rezervoni takimin tuaj të terapisë së të folurit me Eva Alimeri. Konsultime në person dhe online." />
+      <meta name="twitter:image" content={`${siteUrl}/icons/icon-512x512.png`} />
+
+      {/* JSON-LD */}
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+    </>
+  )
+}

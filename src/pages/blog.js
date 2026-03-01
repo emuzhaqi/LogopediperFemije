@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import ReactMarkdown from 'react-markdown'
+import { Link } from 'gatsby'
 import { LanguageProvider, useLanguage } from '../context/LanguageContext'
 import Navigation from '../components/Navigation'
 import { supabase } from '../utils/supabase'
@@ -22,7 +22,6 @@ const BlogContent = () => {
   const { language } = useLanguage()
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedArticle, setSelectedArticle] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(null)
 
@@ -37,7 +36,6 @@ const BlogContent = () => {
       searchPlaceholder: 'Search by title…',
       allCategories: 'All',
       noResults: 'No articles match your search.',
-      back: '← Back to articles',
     },
     sq: {
       heroTitle: 'Blog',
@@ -49,7 +47,6 @@ const BlogContent = () => {
       searchPlaceholder: 'Kërko sipas titullit…',
       allCategories: 'Të gjitha',
       noResults: 'Asnjë artikull nuk përputhet me kërkimin tuaj.',
-      back: '← Kthehu te artikujt',
     },
   }
 
@@ -66,20 +63,6 @@ const BlogContent = () => {
       })
       .catch(() => setLoading(false))
   }, [])
-
-  // Close modal on Escape key
-  useEffect(() => {
-    if (!selectedArticle) return
-    const handler = (e) => { if (e.key === 'Escape') setSelectedArticle(null) }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [selectedArticle])
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    document.body.style.overflow = selectedArticle ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
-  }, [selectedArticle])
 
   const allCategories = useMemo(() => {
     const set = new Set()
@@ -261,22 +244,21 @@ const BlogContent = () => {
                         {formatDate(article.created_at)}
                       </p>
 
-                      <button
-                        onClick={() => setSelectedArticle(article)}
+                      <Link
+                        to={`/blog/${article.slug}`}
                         style={{
+                          display: 'inline-block',
                           backgroundColor: '#3498db',
                           color: 'white',
-                          border: 'none',
                           borderRadius: '6px',
                           padding: '0.45rem 1.1rem',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          cursor: 'pointer',
-                          fontFamily: 'Arial, sans-serif',
+                          textDecoration: 'none',
                         }}
                       >
                         {c.readMore}
-                      </button>
+                      </Link>
                     </article>
                   )
                 })}
@@ -285,122 +267,6 @@ const BlogContent = () => {
           </>
         )}
       </section>
-
-      {/* Article Modal */}
-      {selectedArticle && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedArticle(null) }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            overflowY: 'auto',
-            padding: 'clamp(1rem, 4vw, 3rem) 1rem',
-          }}
-        >
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            width: '100%',
-            maxWidth: '740px',
-            padding: 'clamp(1.5rem, 5vw, 3rem)',
-            position: 'relative',
-          }}>
-            {/* Close button */}
-            <button
-              onClick={() => setSelectedArticle(null)}
-              aria-label="Close"
-              style={{
-                position: 'absolute',
-                top: '1rem',
-                right: '1rem',
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                color: '#6b7280',
-                lineHeight: 1,
-                padding: '0.25rem 0.5rem',
-              }}
-            >
-              ✕
-            </button>
-
-            {/* Category pills */}
-            {getCategories(selectedArticle).length > 0 && (
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                {getCategories(selectedArticle).map((cat) => (
-                  <span key={cat} style={{
-                    backgroundColor: '#eaf4fd',
-                    color: '#2980b9',
-                    borderRadius: '999px',
-                    padding: '0.15rem 0.65rem',
-                    fontSize: '0.75rem',
-                    fontWeight: '500',
-                  }}>
-                    {cat}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 'bold', color: '#2c3e50', margin: '0 0 0.5rem', lineHeight: 1.3 }}>
-              {selectedArticle.title}
-            </h1>
-            <p style={{ fontSize: '0.85rem', color: '#95a5a6', marginBottom: '2rem' }}>
-              {formatDate(selectedArticle.created_at)}
-            </p>
-
-            <div style={{ fontSize: '1rem', lineHeight: 1.8, color: '#2c3e50' }}>
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '1.5rem 0 0.75rem', color: '#2c3e50' }}>{children}</h1>,
-                  h2: ({ children }) => <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: '1.5rem 0 0.5rem', color: '#2c3e50' }}>{children}</h2>,
-                  h3: ({ children }) => <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: '1.25rem 0 0.5rem', color: '#2c3e50' }}>{children}</h3>,
-                  p: ({ children }) => <p style={{ margin: '0 0 1rem', lineHeight: 1.8 }}>{children}</p>,
-                  ul: ({ children }) => <ul style={{ paddingLeft: '1.5rem', margin: '0 0 1rem' }}>{children}</ul>,
-                  ol: ({ children }) => <ol style={{ paddingLeft: '1.5rem', margin: '0 0 1rem' }}>{children}</ol>,
-                  li: ({ children }) => <li style={{ marginBottom: '0.35rem', lineHeight: 1.7 }}>{children}</li>,
-                  strong: ({ children }) => <strong style={{ fontWeight: '700' }}>{children}</strong>,
-                  em: ({ children }) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
-                  blockquote: ({ children }) => (
-                    <blockquote style={{ borderLeft: '4px solid #3498db', paddingLeft: '1rem', margin: '1rem 0', color: '#6b7280', fontStyle: 'italic' }}>
-                      {children}
-                    </blockquote>
-                  ),
-                  code: ({ children }) => <code style={{ backgroundColor: '#f3f4f6', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.9em', fontFamily: 'monospace' }}>{children}</code>,
-                  pre: ({ children }) => <pre style={{ backgroundColor: '#f3f4f6', padding: '1rem', borderRadius: '8px', overflowX: 'auto', margin: '0 0 1rem' }}>{children}</pre>,
-                  hr: () => <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', margin: '1.5rem 0' }} />,
-                  a: ({ href, children }) => <a href={href} style={{ color: '#3498db' }} target="_blank" rel="noopener noreferrer">{children}</a>,
-                }}
-              >
-                {selectedArticle.content || ''}
-              </ReactMarkdown>
-            </div>
-
-            <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
-              <button
-                onClick={() => setSelectedArticle(null)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#3498db',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  padding: 0,
-                  fontFamily: 'Arial, sans-serif',
-                }}
-              >
-                {c.back}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -418,10 +284,52 @@ const BlogPage = () => {
 
 export default BlogPage
 
-export const Head = () => (
+const siteUrl = 'https://www.logopediperfemije.com'
+const pageUrl = `${siteUrl}/blog`
+
+export const Head = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Blog — Logopedi për Fëmijë',
+    description: 'Artikuj dhe këshilla mbi terapinë e të folurit, zhvillimin e fëmijëve dhe mbështetjen e komunikimit për familjet.',
+    url: pageUrl,
+    publisher: {
+      '@type': 'Organization',
+      name: 'Logopedi për Fëmijë',
+      url: siteUrl,
+    },
+  }
+
+  return (
   <>
-    <title>Blog — Logopedi për Fëmijë</title>
-    <meta name="description" content="Articles and tips on speech therapy, child development, and communication support for families." />
+    <html lang="sq" />
+    <title>Blog — Këshilla për Terapinë e të Folurit | Logopedi për Fëmijë</title>
+    <meta name="description" content="Artikuj dhe këshilla mbi terapinë e të folurit, zhvillimin e fëmijëve dhe mbështetjen e komunikimit për familjet. Articles and tips on speech therapy and child development." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <link rel="canonical" href={pageUrl} />
+
+    {/* Hreflang */}
+    <link rel="alternate" hrefLang="sq" href={pageUrl} />
+    <link rel="alternate" hrefLang="en" href={pageUrl} />
+    <link rel="alternate" hrefLang="x-default" href={pageUrl} />
+
+    {/* Open Graph */}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:title" content="Blog — Këshilla për Terapinë e të Folurit | Logopedi për Fëmijë" />
+    <meta property="og:description" content="Artikuj dhe këshilla mbi terapinë e të folurit, zhvillimin e fëmijëve dhe mbështetjen e komunikimit për familjet." />
+    <meta property="og:image" content={`${siteUrl}/icons/icon-512x512.png`} />
+    <meta property="og:site_name" content="Logopedi për Fëmijë" />
+
+    {/* Twitter Card */}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Blog — Këshilla për Terapinë e të Folurit" />
+    <meta name="twitter:description" content="Artikuj dhe këshilla mbi terapinë e të folurit, zhvillimin e fëmijëve dhe mbështetjen e komunikimit për familjet." />
+    <meta name="twitter:image" content={`${siteUrl}/icons/icon-512x512.png`} />
+
+    {/* JSON-LD */}
+    <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
   </>
-)
+  )
+}

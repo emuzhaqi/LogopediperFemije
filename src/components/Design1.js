@@ -124,7 +124,7 @@ const Design1 = () => {
               <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: '#2c3e50' }}>
                 {service.title}
               </h3>
-              <p style={{ color: '#7f8c8d', lineHeight: '1.6' }}>
+              <p style={{ color: '#5c6b6c', lineHeight: '1.6' }}>
                 {service.desc}
               </p>
             </div>

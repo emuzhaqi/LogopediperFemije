@@ -38,7 +38,7 @@ header {
   font-weight: 600;
 }
 
-main {
+.layout main {
   flex: 1;
   max-width: 1200px;
   width: 100%;
@@ -153,7 +153,7 @@ img {
     font-size: 1rem;
   }
 
-  main {
+  .layout main {
     padding: 1rem;
   }
 

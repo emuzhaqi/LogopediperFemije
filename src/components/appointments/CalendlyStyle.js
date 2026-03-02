@@ -8,36 +8,22 @@ const CalendlyStyle = ({ translations }) => {
 
   const introText = {
     en: {
-      intro: "If these thoughts have ever crossed your mind:",
-      q1: "When will my child start speaking?",
-      q2: "Is my child communicating enough?",
-      q3: "How can I best support them?",
-      q4: "Will growing up bilingual affect their development?",
-      moreQuestions: "…and so many more—",
-      newParent: "Or if you are a new parent who simply wants to learn, understand, and walk more mindfully beside your child during the beautiful journey of communication, speech, and language development—",
-      connect: "Then I would truly love to connect and talk with you.",
-      together: "Together, we can explore your questions, your concerns, and your child's unique path, in a safe and supportive space.",
-      whatsapp: "Once you choose a date that feels right for you, you will receive a WhatsApp message with all the details explained step by step.",
-      thanks: "Thank you from the heart for your trust.",
-      fee: "Consultation fee: 35 euros."
+      line1: "If you have questions about your child's language development, or if you are a parent who wants to learn how to better support language development every day, then you can contact us for a consultation.",
+      line2: "Together, we will address your questions, concerns, and find the best approach for your child.",
+      line3: "Once you book a date, we will contact you on WhatsApp for more details.",
+      line4: "Thank you for your trust!",
+      signature: "With love, speech therapist Eva 🤍"
     },
     sq: {
-      intro: "Nëse këto pyetje ju kanë shkuar ndonjëherë nëpër mend:",
-      q1: "Kur do të fillojë fëmija im të flasë?",
-      q2: "A po komunikon mjaftueshëm fëmija im?",
-      q3: "Si mund ta mbështes më mirë?",
-      q4: "A do të ndikojë rritja dy-gjuhëshe në zhvillimin e tyre?",
-      moreQuestions: "…dhe shumë të tjera—",
-      newParent: "Ose nëse jeni prind i ri që thjesht dëshiron të mësojë, të kuptojë dhe të ecë me më shumë vëmendje pranë fëmijës tuaj gjatë udhëtimit të bukur të komunikimit, të folurit dhe zhvillimit të gjuhës—",
-      connect: "Atëherë do të doja vërtet të lidhem dhe të bisedoj me ju.",
-      together: "Së bashku, mund të eksplorojmë pyetjet tuaja, shqetësimet tuaja dhe rrugën unike të fëmijës tuaj, në një hapësirë të sigurt dhe mbështetëse.",
-      whatsapp: "Pasi të zgjidhni një datë që ju duket e përshtatshme, do të merrni një mesazh në WhatsApp me të gjitha detajet të shpjeguara hap pas hapi.",
-      thanks: "Faleminderit nga zemra për besimin tuaj.",
-      fee: "Tarifa e konsultimit: 35 euro."
+      line1: "Nëse keni pyetje për zhvillimin gjuhësor të fëmijës suaj, ose nëse jeni prind që dëshiron të mësojë si ta mbështesë më mirë zhvillimin gjuhësor çdo ditë, atëherë mund të na kontaktoni për një konsultë.",
+      line2: "Së bashku, do t'i adresojmë pyetjet tuaja, shqetësimet dhe do të gjejmë qasjen më të mirë për fëmijën.",
+      line3: "Pasi të rezervoni një datë, do t'ju kontaktojmë në WhatsApp për më shumë detaje.",
+      line4: "Faleminderit për besimin!",
+      signature: "Me dashuri, logopede Eva 🤍"
     }
   }
 
-  const intro = introText[language]
+  const intro = introText[language] || introText['sq']
 
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
@@ -87,7 +73,7 @@ const CalendlyStyle = ({ translations }) => {
     const maxDate = new Date(today)
     maxDate.setDate(today.getDate() + 14)
     const dayOfWeek = date.getDay()
-    if (date < today) return true
+    if (date <= today) return true
     if (date > maxDate) return true
     if (dayOfWeek === 0 || dayOfWeek === 6) return true
     if (blockedDates.includes(toDateStr(date))) return true
@@ -466,37 +452,12 @@ const CalendlyStyle = ({ translations }) => {
         fontSize: 'clamp(0.85rem, 2.5vw, 0.95rem)',
         marginBottom: 'clamp(1rem, 3vw, 2rem)'
       }}>
-          <p style={{ marginBottom: '1rem', fontStyle: 'italic' }}>{intro.intro}</p>
+          <p style={{ marginBottom: '1rem' }}>{intro.line1}</p>
+          <p style={{ marginBottom: '1rem' }}>{intro.line2}</p>
+          <p style={{ marginBottom: '1rem' }}>{intro.line3}</p>
+          <p style={{ marginBottom: '1.5rem' }}>{intro.line4}</p>
 
-          <ul style={{ marginBottom: '1rem', paddingLeft: '1.5rem', listStyle: 'none' }}>
-            <li style={{ marginBottom: '0.5rem' }}>• {intro.q1}</li>
-            <li style={{ marginBottom: '0.5rem' }}>• {intro.q2}</li>
-            <li style={{ marginBottom: '0.5rem' }}>• {intro.q3}</li>
-            <li style={{ marginBottom: '0.5rem' }}>• {intro.q4}</li>
-          </ul>
-
-          <p style={{ marginBottom: '1rem', fontStyle: 'italic' }}>{intro.moreQuestions}</p>
-
-          <p style={{ marginBottom: '1.5rem' }}>{intro.newParent}</p>
-
-          <p style={{ marginBottom: '1.5rem', fontWeight: '500', color: '#1a1a1a' }}>{intro.connect}</p>
-
-          <p style={{ marginBottom: '1.5rem' }}>{intro.together}</p>
-
-          <p style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#6b7280' }}>{intro.whatsapp}</p>
-
-          <p style={{ marginBottom: '1.5rem', fontStyle: 'italic', color: '#374151' }}>{intro.thanks}</p>
-
-          <div style={{
-            padding: '1rem',
-            backgroundColor: '#f0f7ff',
-            borderRadius: '6px',
-            borderLeft: '4px solid #006bff',
-            fontWeight: '600',
-            color: '#006bff'
-          }}>
-            {intro.fee}
-          </div>
+          <p style={{ fontStyle: 'italic', color: '#374151' }}>{intro.signature}</p>
       </div>
 
       {/* Calendar Section */}

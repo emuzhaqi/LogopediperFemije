@@ -3,14 +3,17 @@ import { LanguageProvider } from '../context/LanguageContext'
 import Navigation, { FloatingLangToggle } from '../components/Navigation'
 import Design1 from '../components/Design1'
 import ArtieChatbot from '../components/ArtieChatbot'
+import heroImage from '../images/image2.jpg'
 
 const IndexPage = () => {
   return (
     <LanguageProvider>
       <div style={{ paddingTop: '60px' }}>
         <Navigation />
-        <Design1 />
-        <ArtieChatbot />
+        <main>
+          <Design1 />
+          <ArtieChatbot />
+        </main>
         <FloatingLangToggle />
       </div>
     </LanguageProvider>
@@ -59,6 +62,7 @@ export const Head = () => {
   return (
     <>
       <html lang="sq" />
+      <link rel="preload" as="image" href={heroImage} />
       <title>Logopedi për Fëmijë — Terapi e të Folurit për Fëmijë</title>
       <meta name="description" content="Shërbime profesionale të terapisë së të folurit për fëmijë. Eva Alimeri, logopede e licencuar — konsultime në person dhe online. Speech therapy for children in Albanian and English." />
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />

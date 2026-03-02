@@ -75,7 +75,7 @@ const Navigation = () => {
       flexWrap: 'wrap',
       gap: '1rem'
     }}>
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'white' }}>
+      <Link to="/" aria-label="Home" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'white' }}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

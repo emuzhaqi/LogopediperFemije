@@ -30,7 +30,7 @@ async function getPayPalAccessToken(): Promise<string> {
   return data.access_token
 }
 
-const SITE_URL = 'https://emuzhaqi.github.io/LogopediperFemije'
+const SITE_URL = 'https://www.logopediperfemije.com'
 
 async function createPayPalOrder(
   accessToken: string,

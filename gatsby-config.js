@@ -44,5 +44,17 @@ module.exports = {
         output: `/sitemap`,
       },
     },
+    {
+      resolve: `gatsby-plugin-google-gtag`,
+      options: {
+        trackingIds: [`G-143CD02L7M`],
+        gtagConfig: {
+          anonymize_ip: true,
+        },
+        pluginConfig: {
+          head: true,
+        },
+      },
+    },
   ],
 }
